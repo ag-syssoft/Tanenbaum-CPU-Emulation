@@ -117,7 +117,12 @@ namespace Tanenbaum_CPU_Emulator
 							if (parts[0] == "END")
 								inst.cmd = null;
 							else
-								throw new Exception("Unable to find parameter-less command '" + parts[0] + "' of line '" + line + "'");
+							{
+								if (CommandMap.parameterCommands.ContainsKey(parts[0]))
+									throw new Exception("Command '" + parts[0] + "' in line '" + line + "' requires a parameter");
+								else
+									throw new Exception("Unable to find command '" + parts[0] + "' of line '" + line + "'");
+							}
 						}
 						inst.line += parts[0];
 					}
