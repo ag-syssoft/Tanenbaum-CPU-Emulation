@@ -153,10 +153,14 @@ namespace Tanenbaum_CPU_Emulator
 			{
 				LogFatal(ex.Message);
 				Log("Known commands: ");
+				Log("  [label]:");
 				foreach (var cmd in CommandMap.plainCommands)
-					Log(cmd.Key);
+					Log("  " + cmd.Key);
 				foreach (var cmd in CommandMap.parameterCommands)
-					Log(cmd.Key + " X");
+					if (CommandMap.wantsLabel.Contains(cmd.Key))
+						Log("  "+cmd.Key + " [label]");
+					else
+						Log("  " + cmd.Key + " [number]");
 			}
 			catch (Exception ex)
 			{
