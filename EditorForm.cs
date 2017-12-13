@@ -114,7 +114,7 @@ namespace Tanenbaum_CPU_Emulator
 					{
 						if (!CommandMap.plainCommands.TryGetValue(commandName, out inst.cmd))
 						{
-							if (parts[0] == "END")
+							if (commandName == "END")
 								inst.cmd = null;
 							else
 							{
@@ -154,6 +154,7 @@ namespace Tanenbaum_CPU_Emulator
 				LogFatal(ex.Message);
 				Log("Known commands: ");
 				Log("  [label]:");
+				Log("  END");
 				foreach (var cmd in CommandMap.plainCommands)
 					Log("  " + cmd.Key);
 				foreach (var cmd in CommandMap.parameterCommands)
