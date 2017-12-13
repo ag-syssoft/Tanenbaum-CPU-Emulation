@@ -1,6 +1,6 @@
 ﻿namespace Tanenbaum_CPU_Emulator
 {
-	partial class Form1
+	partial class EditorForm
 	{
 		/// <summary>
 		/// Required designer variable.

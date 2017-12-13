@@ -12,9 +12,9 @@ namespace Tanenbaum_CPU_Emulator
 {
 
 
-	public partial class Form1 : Form
+	public partial class EditorForm : Form
 	{
-		public Form1()
+		public EditorForm()
 		{
 			InitializeComponent();
 
