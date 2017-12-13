@@ -25,7 +25,7 @@ namespace Tanenbaum_CPU_Emulator
 		private ResultOut resultOut;
 		private void MakeLog()
 		{
-			if (resultOut == null)
+			if (resultOut == null || !resultOut.Visible)
 				resultOut = new ResultOut();
 			resultOut.Show();
 			resultOut.Focus();
@@ -55,9 +55,10 @@ namespace Tanenbaum_CPU_Emulator
 			try
 			{
 				InstructionSequence p = new InstructionSequence();
-
+				int lineIndex = 0;
 				foreach (var line in lines)
 				{
+					lineIndex++;
 					string cmd = line;
 					int at = cmd.IndexOf("//");
 					if (at >= 0)
@@ -84,44 +85,40 @@ namespace Tanenbaum_CPU_Emulator
 							p.labels.Add(label, p.instructions.Count);
 						continue;
 					}
+					string commandName = parts[0].ToUpper();
 					if (label != null)
-						inst.line = label + "(="+p.instructions.Count+"): ";
+						inst.line = label + "(=" + p.instructions.Count + "): ";
 					else
 						inst.line = "(" + p.instructions.Count + "): ";
 					if (parts.Length == 2)
 					{
 						int x = 0;
-						bool wantLabel = CommandMap.wantsLabel.Contains(parts[0]);
+						bool wantLabel = CommandMap.wantsLabel.Contains(commandName);
 						if (wantLabel)
 							inst.labelParameter = parts[1];
-						if	(
+						if (
 								//(wantLabel && !p.labels.TryGetValue(parts[1], out x))
 								//||
-								(!wantLabel  && !int.TryParse(parts[1], out x))
+								(!wantLabel && !int.TryParse(parts[1], out x))
 							)
-							{
-								throw new Exception("Unable to parse parameter '" + parts[1] + "' of line '" + line + "'");
-							}
-						if (!CommandMap.parameterCommands.TryGetValue(parts[0], out inst.pcmd))
 						{
-							throw new Exception("Unable to find command '" + parts[0] + "' of line '" + line + "'");
+							throw new Exception("Unable to parse parameter '" + parts[1] + "' of line '" + line + "'");
 						}
+						if (!CommandMap.parameterCommands.TryGetValue(commandName, out inst.pcmd))
+							throw new CommandNotFoundException(commandName, line, lineIndex, false);
 						inst.parameter = x;
 						inst.hasParameter = true;
-						inst.line += parts[0] + " " + (wantLabel ? parts[1] : x.ToString());
+						inst.line += commandName + " " + (wantLabel ? parts[1] : x.ToString());
 					}
 					else
 					{
-						if (!CommandMap.plainCommands.TryGetValue(parts[0], out inst.cmd))
+						if (!CommandMap.plainCommands.TryGetValue(commandName, out inst.cmd))
 						{
 							if (parts[0] == "END")
 								inst.cmd = null;
 							else
 							{
-								if (CommandMap.parameterCommands.ContainsKey(parts[0]))
-									throw new Exception("Command '" + parts[0] + "' in line '" + line + "' requires a parameter");
-								else
-									throw new Exception("Unable to find command '" + parts[0] + "' of line '" + line + "'");
+								throw new CommandNotFoundException(commandName, line, lineIndex, CommandMap.parameterCommands.ContainsKey(commandName));
 							}
 						}
 						inst.line += parts[0];
@@ -145,18 +142,27 @@ namespace Tanenbaum_CPU_Emulator
 
 						}
 						inst.parameter = x;
-						inst.line += " (=" + x+")";
+						inst.line += " (=" + x + ")";
 						p.instructions[i] = inst;
 					}
 
 				}
 				return p;
 			}
+			catch (CommandNotFoundException ex)
+			{
+				LogFatal(ex.Message);
+				Log("Known commands: ");
+				foreach (var cmd in CommandMap.plainCommands)
+					Log(cmd.Key);
+				foreach (var cmd in CommandMap.parameterCommands)
+					Log(cmd.Key + " X");
+			}
 			catch (Exception ex)
 			{
-				LogFatal(ex.ToString());
-				return null;
+				LogFatal(ex.Message);
 			}
+			return null;
 		}
 
 		private void runToolStripMenuItem1_Click(object sender, EventArgs e)

@@ -102,7 +102,7 @@ namespace Tanenbaum_CPU_Emulator
 			}
 			catch (Exception ex)
 			{
-				LogFatal(ex.ToString());
+				LogFatal(ex.Message);
 				End();
 			}
 			instructionCountLabel.Text = instructionCounter.ToString();

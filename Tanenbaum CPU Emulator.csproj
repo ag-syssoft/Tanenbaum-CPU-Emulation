@@ -47,6 +47,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CommandMap.cs" />
+    <Compile Include="CommandNotFoundException.cs" />
     <Compile Include="EditorForm.cs">
       <SubType>Form</SubType>
     </Compile>

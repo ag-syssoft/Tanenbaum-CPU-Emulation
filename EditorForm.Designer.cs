@@ -40,6 +40,7 @@
 			this.codeInputBox.AcceptsReturn = true;
 			this.codeInputBox.AcceptsTab = true;
 			this.codeInputBox.Dock = System.Windows.Forms.DockStyle.Fill;
+			this.codeInputBox.Font = new System.Drawing.Font("Consolas", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 			this.codeInputBox.Location = new System.Drawing.Point(0, 24);
 			this.codeInputBox.MaxLength = 32767000;
 			this.codeInputBox.Multiline = true;
@@ -74,7 +75,7 @@
 			this.runToolStripMenuItem1.Text = "Run";
 			this.runToolStripMenuItem1.Click += new System.EventHandler(this.runToolStripMenuItem1_Click);
 			// 
-			// Form1
+			// EditorForm
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
@@ -82,7 +83,7 @@
 			this.Controls.Add(this.codeInputBox);
 			this.Controls.Add(this.menuStrip1);
 			this.MainMenuStrip = this.menuStrip1;
-			this.Name = "Form1";
+			this.Name = "EditorForm";
 			this.Text = "Tanenbaum CPU Emulator - Code";
 			this.menuStrip1.ResumeLayout(false);
 			this.menuStrip1.PerformLayout();

@@ -17,19 +17,19 @@ namespace Tanenbaum_CPU_Emulator
 		public List<string> log = new List<string>();
 		private void LogSP()
 		{
-			log.Add("sp -> " + (sp != 0 ? sp - m.Length : 0));
+			log.Add("sp := " + (sp != 0 ? sp - m.Length : 0));
 		}
 		private void LogM(int a)
 		{
-			log.Add("m[" + a + "] -> " + m[a]);
+			log.Add("m[" + a + "] := " + m[a]);
 		}
 		private void LogPC()
 		{
-			log.Add("pc -> " + pc);
+			log.Add("pc := " + pc);
 		}
 		private void LogAC()
 		{
-			log.Add("ac -> " + ac);
+			log.Add("ac := " + ac);
 		}
 
 
