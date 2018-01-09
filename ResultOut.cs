@@ -32,87 +32,54 @@ namespace Tanenbaum_CPU_Emulator
 			resultBox.Items.Add("Fatal: "+message);
 		}
 
-
-		private Machine.State machineState;
-		private Machine.InstructionSequence sequence;
-		private bool canResume = true;
-		private int instructionCounter = 0;
+		private Machine.Execution exec;
 
 		private void End()
 		{
-			if (canResume)
+			if (exec != null)
 			{
 				Log("End");
 				pauseButton.Enabled = false;
 			}
-			canResume = false;
+			exec = null;
 			programCounter.Enabled = false;
 		}
 
-		public void Run(Machine.InstructionSequence seq)
+		public void Run(Machine.Instruction[] program)
 		{
-			machineState = new Machine.State();
-			sequence = seq;
+			exec = new Machine.Execution(program, x => Log(x));
 			pauseButton.Text = "Pause";
 			pauseButton.Enabled = true;
-			canResume = true;
 			programCounter.Enabled = true;
-			instructionCounter = 0;
 		}
 
 		private void programCounter_Tick(object sender, EventArgs e)
 		{
-			Machine.State st = machineState;
-			Machine.InstructionSequence p = sequence;
-			if (!canResume)
+			if (exec == null)
 			{
 				End();
 				return;
 			}
+			bool doEnd = false;
 			try
 			{
-				for (int i = 0; i < 10; i++)
-				{
-					if (st.pc < 0 || st.pc >= p.instructions.Count)
-					{
-						End();
-						break;
-					}
-					instructionCounter++;
-					Machine.InstructionSequence.Instruction inst = p.instructions[st.pc];
-					st.pc++;
-					Log(inst.line);
-					if (!inst.parameter.HasValue)
-					{
-						if (inst.cmd != null)
-							inst.cmd(st,0);
-						else
-						{
-							End();
-							break;
-						}
-					}
-					else
-						inst.cmd(st, inst.parameter.Value);
-
-					foreach (string l in st.log)
-						Log("    " + l);
-					st.log.Clear();
-				}
+				if (exec.Execute(10))
+					doEnd = true;
 			}
 			catch (Exception ex)
 			{
 				LogFatal(ex.Message);
-				End();
+				doEnd = true;
 			}
-			instructionCountLabel.Text = instructionCounter.ToString();
-			pcLabel.Text = st.pc.ToString();
-
+			instructionCountLabel.Text = exec.InstructionCounter.ToString();
+			pcLabel.Text = exec.State.pc.ToString();
+			if (doEnd)
+				End();
 		}
 
 		private void pauseButton_Click(object sender, EventArgs e)
 		{
-			if (canResume)
+			if (exec != null)
 			{
 				programCounter.Enabled = !programCounter.Enabled;
 				if (programCounter.Enabled)

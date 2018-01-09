@@ -51,10 +51,10 @@ namespace Tanenbaum_CPU_Emulator
 		{
 			ClearLog();
 
-			Machine.InstructionSequence p = null;
+			Machine.Instruction[] p = null;
 			try
 			{
-				p = Machine.InstructionSequence.Parse(codeInputBox.Lines);
+				p = Machine.Language.Parse(codeInputBox.Lines);
 			}
 			catch (Machine.CommandException ex)
 			{

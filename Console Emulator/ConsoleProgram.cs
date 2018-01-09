@@ -16,37 +16,11 @@ namespace Console_Emulator
 				Console.Error.WriteLine("Usage: trun filename");
 				return;
 			}
-			int instructionCounter = 0;
+			Machine.Execution exec = null;
 			try
 			{
-				var inst = Machine.InstructionSequence.Parse(File.ReadAllLines(args[0]));
-				var st = new Machine.State();
-
-
-				while (true)
-				{
-					if (st.pc < 0 || st.pc >= inst.instructions.Count)
-						break;
-
-					instructionCounter++;
-					var next = inst.instructions[st.pc];
-					st.pc++;
-					Console.WriteLine(next.line);
-					if (!next.parameter.HasValue)
-					{
-						if (next.cmd != null)
-							next.cmd(st, 0);
-						else
-							break;
-					}
-					else
-						next.cmd(st, next.parameter.Value);
-
-					foreach (string l in st.log)
-						Console.WriteLine("    " + l);
-					st.log.Clear();
-
-				}
+				exec = new Machine.Execution(Machine.Language.Parse(File.ReadAllLines(args[0])), x => Console.WriteLine(x));
+				exec.Execute(int.MaxValue);
 			}
 			catch (Machine.CommandException ex)
 			{
@@ -69,7 +43,8 @@ namespace Console_Emulator
 			{
 				Console.Error.WriteLine(ex.Message);
 			}
-			Console.WriteLine("Program ended after " + instructionCounter + " instruction(s)");
+			if (exec != null)
+				Console.WriteLine("Program ended after " + exec.InstructionCounter + " instruction(s)");
 
 		}
 	}

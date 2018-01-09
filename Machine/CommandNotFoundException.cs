@@ -5,66 +5,35 @@ namespace Machine
 {
 	public class CommandException : Exception
 	{
-		public readonly string CommandName;
 		public readonly string FullLine;
 		public readonly int LineIndex;
-		public CommandException(string commandName, string fullLine, int lineIndex)
+		public CommandException(Exception nested, string fullLine, int lineIndex): base("Line #"+lineIndex+" '"+fullLine+"': "+nested.Message,nested)
 		{
-			CommandName = commandName;
 			FullLine = fullLine;
 			LineIndex = lineIndex;
 		}
-
-
-		public string Describe()
-		{
-			return "'"+CommandName + "' in line #" + LineIndex + ": '" + FullLine + "'";
-		}
 	}
 
-	public class CommandNotFoundException : CommandException
+	public class CommandNotFoundException : Exception
 	{
 
-		public CommandNotFoundException(string commandName, string fullLine, int lineIndex) : base(commandName,fullLine,lineIndex)
+		public CommandNotFoundException(string commandName) : base("Unable to find command '"+commandName+"'")
 		{}
 
-		public override string Message
-		{
-			get
-			{
-				return "Unable to find command "+Describe();
-			}
-		}
 	}
 
-	public class CommandRequiresParameterException : CommandException
+	public class CommandRequiresParameterException : Exception
 	{
-		public CommandRequiresParameterException(string commandName, string fullLine, int lineIndex) : base(commandName, fullLine, lineIndex)
+		public CommandRequiresParameterException(string commandName) : base("Command '"+commandName+"' requires a parameter but none is given")
 		{ }
-
-		public override string Message
-		{
-			get
-			{
-				return "Command " + Describe()+" requires parameter";
-			}
-		}
 	}
 
 
 
-	public class CommandHasNoParameterException : CommandException
+	public class CommandHasNoParameterException : Exception
 	{
-		public CommandHasNoParameterException(string commandName, string fullLine, int lineIndex) : base(commandName, fullLine, lineIndex)
+		public CommandHasNoParameterException(string commandName) : base("Command '"+commandName+"' does not support parameters, but a parameter is specified")
 		{ }
-
-		public override string Message
-		{
-			get
-			{
-				return "Command " + Describe() + " has no parameter, but parameter given";
-			}
-		}
 	}
 
 }
