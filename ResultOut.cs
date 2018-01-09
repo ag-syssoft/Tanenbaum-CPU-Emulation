@@ -27,9 +27,15 @@ namespace Tanenbaum_CPU_Emulator
 			resultBox.Items.Add(line);
 		}
 
+		void ScrollDown()
+		{
+			int visibleItems = resultBox.ClientSize.Height / resultBox.ItemHeight;
+			resultBox.TopIndex = Math.Max(resultBox.Items.Count - visibleItems + 1, 0);
+		}
+
 		internal void LogFatal(string message)
 		{
-			resultBox.Items.Add("Fatal: "+message);
+			Log("Fatal: "+message);
 		}
 
 		private Machine.Emulator exec;
@@ -72,9 +78,13 @@ namespace Tanenbaum_CPU_Emulator
 				doEnd = true;
 			}
 			instructionCountLabel.Text = exec.InstructionCounter.ToString();
-			pcLabel.Text = exec.State.pc.ToString();
+			var state = exec.State;
+			pcLabel.Text = state.pc.ToString();
+			acLabel.Text = state.ac.ToString();
+			spLabel.Text = state.sp.ToString();
 			if (doEnd)
 				End();
+			ScrollDown();
 		}
 
 		private void pauseButton_Click(object sender, EventArgs e)

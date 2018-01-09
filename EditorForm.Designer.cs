@@ -28,26 +28,12 @@
 		/// </summary>
 		private void InitializeComponent()
 		{
-			this.codeInputBox = new System.Windows.Forms.TextBox();
 			this.menuStrip1 = new System.Windows.Forms.MenuStrip();
 			this.runToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.runToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
+			this.codeInputBox = new System.Windows.Forms.RichTextBox();
 			this.menuStrip1.SuspendLayout();
 			this.SuspendLayout();
-			// 
-			// codeInputBox
-			// 
-			this.codeInputBox.AcceptsReturn = true;
-			this.codeInputBox.AcceptsTab = true;
-			this.codeInputBox.Dock = System.Windows.Forms.DockStyle.Fill;
-			this.codeInputBox.Font = new System.Drawing.Font("Consolas", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.codeInputBox.Location = new System.Drawing.Point(0, 24);
-			this.codeInputBox.MaxLength = 32767000;
-			this.codeInputBox.Multiline = true;
-			this.codeInputBox.Name = "codeInputBox";
-			this.codeInputBox.ScrollBars = System.Windows.Forms.ScrollBars.Both;
-			this.codeInputBox.Size = new System.Drawing.Size(801, 589);
-			this.codeInputBox.TabIndex = 2;
 			// 
 			// menuStrip1
 			// 
@@ -75,6 +61,16 @@
 			this.runToolStripMenuItem1.Text = "Run";
 			this.runToolStripMenuItem1.Click += new System.EventHandler(this.runToolStripMenuItem1_Click);
 			// 
+			// codeInputBox
+			// 
+			this.codeInputBox.Dock = System.Windows.Forms.DockStyle.Fill;
+			this.codeInputBox.Font = new System.Drawing.Font("Consolas", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.codeInputBox.Location = new System.Drawing.Point(0, 24);
+			this.codeInputBox.Name = "codeInputBox";
+			this.codeInputBox.Size = new System.Drawing.Size(801, 589);
+			this.codeInputBox.TabIndex = 6;
+			this.codeInputBox.Text = "";
+			// 
 			// EditorForm
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -93,10 +89,10 @@
 		}
 
 		#endregion
-		private System.Windows.Forms.TextBox codeInputBox;
 		private System.Windows.Forms.MenuStrip menuStrip1;
 		private System.Windows.Forms.ToolStripMenuItem runToolStripMenuItem;
 		private System.Windows.Forms.ToolStripMenuItem runToolStripMenuItem1;
+		private System.Windows.Forms.RichTextBox codeInputBox;
 	}
 }
 
