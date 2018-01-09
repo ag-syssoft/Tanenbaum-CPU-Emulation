@@ -138,7 +138,12 @@ namespace Tanenbaum_CPU_Emulator
 							codeInputBox.SelectionFont = commandFont;
 							codeInputBox.SelectionColor = Color.Blue;
 						}
-						catch (Machine.CommandHasNoParameterException)
+						catch (Machine.CommandRequiresParameterException)
+						{
+							codeInputBox.SelectionFont = commandFont;
+							codeInputBox.SelectionColor = Color.Maroon;
+						}
+						catch (Machine.CommandDoesNotSupportParameterException)
 						{
 							codeInputBox.SelectionFont = commandFont;
 							codeInputBox.SelectionColor = Color.Blue;

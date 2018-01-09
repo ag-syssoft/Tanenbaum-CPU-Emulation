@@ -102,7 +102,7 @@ namespace Machine
 				if (rs.RequiresParameter)
 					throw new CommandRequiresParameterException(name);
 				else
-					throw new CommandHasNoParameterException(name);
+					throw new CommandDoesNotSupportParameterException(name);
 			}
 			return rs;
 		}

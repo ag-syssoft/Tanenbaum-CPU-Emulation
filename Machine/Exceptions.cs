@@ -30,9 +30,9 @@ namespace Machine
 
 
 
-	public class CommandHasNoParameterException : Exception
+	public class CommandDoesNotSupportParameterException : Exception
 	{
-		public CommandHasNoParameterException(string commandName) : base("Command '"+commandName+"' does not support parameters, but a parameter is specified")
+		public CommandDoesNotSupportParameterException(string commandName) : base("Command '"+commandName+"' does not support parameters, but a parameter is specified")
 		{ }
 	}
 
