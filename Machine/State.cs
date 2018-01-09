@@ -6,7 +6,9 @@ using System.Threading.Tasks;
 
 namespace Machine
 {
-
+	/// <summary>
+	/// Raw machine state, not including executed program
+	/// </summary>
 	public class State
 	{
 		public int ac = 0;  //accumulator
@@ -15,58 +17,71 @@ namespace Machine
 		public int[] m = new int[0x10000];
 
 		public List<string> log = new List<string>();
+
+		private void Log(string msg)
+		{
+			log.Add(msg);
+		}
 		private void LogSP()
 		{
-			log.Add("sp := " + (sp != 0 ? sp - m.Length : 0));
+			Log("sp := " + (sp != 0 ? sp - m.Length : 0));
 		}
 		private void LogM(int a)
 		{
-			log.Add("m[" + a + "] := " + m[a]);
+			Log("m[" + a + "] := " + m[a]);
 		}
 		private void LogPC()
 		{
-			log.Add("pc := " + pc);
+			Log("pc := " + pc);
 		}
 		private void LogAC()
 		{
-			log.Add("ac := " + ac);
+			Log("ac := " + ac);
 		}
+
 
 
 		public void Push()
 		{
-			sp--;
-			if (sp < 0)
-				sp = m.Length + sp;
-			m[sp] = ac;
-			LogSP();
-			LogM(sp);
+			Push(ac);
 		}
+
+
 		public void Pop()
 		{
-			ac = m[sp];
+			Pop(ref ac);
+			LogAC();
+		}
+
+		private void Pop(ref int popped)
+		{
+			popped = m[sp];
 			sp++;
 			if (sp >= m.Length)
 				sp -= m.Length;
-			LogAC();
 			LogSP();
 		}
-		public void PushIndirect()
+
+		private void Push(int x)
 		{
 			sp--;
 			if (sp < 0)
 				sp = m.Length + sp;
-			m[sp] = m[ac];
+			m[sp] = x;
 			LogSP();
 			LogM(sp);
 		}
+
+		public void PushIndirect()
+		{
+			Push(m[ac]);
+		}
+
+
+
 		public void PopIndirect()
 		{
-			m[ac] = m[sp];
-			sp++;
-			if (sp >= m.Length)
-				sp -= m.Length;
-			LogSP();
+			Pop(ref m[ac]);
 			LogM(ac);
 		}
 
@@ -108,25 +123,18 @@ namespace Machine
 			LogPC();
 		}
 
+
 		public void Call(int x)
 		{
-			sp--;
-			if (sp < 0)
-				sp = m.Length + sp;
-			m[sp] = pc;
+			Push(pc);
 			pc = x;
-			LogSP();
-			LogM(sp);
 			LogPC();
 		}
 
+
 		public void Return()
 		{
-			pc = m[sp];
-			sp++;
-			if (sp >= m.Length)
-				sp -= m.Length;
-			LogSP();
+			Pop(ref pc);
 			LogPC();
 		}
 
@@ -173,12 +181,14 @@ namespace Machine
 		public void AddDirect(int x)
 		{
 			CheckAddr(x);
+			Log("ac += m[" + (x) + "]=" + m[x]);
 			ac = ac + m[x];
 			LogAC();
 		}
 		public void SubDirect(int x)
 		{
 			CheckAddr(x);
+			Log("ac -= m[" + (x) + "]=" + m[x]);
 			ac = ac - m[x];
 			LogAC();
 		}
@@ -198,12 +208,14 @@ namespace Machine
 		public void AddStackRelative(int x)
 		{
 			CheckAddr(sp + x);
+			Log("ac += m[sp+" + (x) + "]=" + m[sp + x]);
 			ac = ac + m[sp + x];
 			LogAC();
 		}
 		public void SubStackRelative(int x)
 		{
 			CheckAddr(sp + x);
+			Log("ac -= m[sp+" + (x) + "]=" + m[sp + x]);
 			ac = ac - m[sp + x];
 			LogAC();
 		}

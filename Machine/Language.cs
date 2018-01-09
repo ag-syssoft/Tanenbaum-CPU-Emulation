@@ -43,7 +43,7 @@ namespace Machine
 			public readonly string Name;
 			/// <summary>
 			/// Action to execute when this command is triggered.
-			/// Requires the state to modify and the parameter specified during compilation
+			/// Requires the state to modify, and the parameter specified during compilation
 			/// </summary>
 			public readonly Action<State, int> Action;
 			/// <summary>
@@ -132,10 +132,10 @@ namespace Machine
 			Register("ADDD", (s, p) => s.AddDirect(p));
 			Register("SUBD", (s, p) => s.SubDirect(p));
 
-			Register("PUSH", (s) => s.Push());
-			Register("POP", (s) => s.Pop());
-			Register("PSHI", (s) => s.PushIndirect());
-			Register("POPI", (s) => s.PopIndirect());
+			Register("PUSH", s => s.Push());
+			Register("POP",  s => s.Pop());
+			Register("PSHI", s => s.PushIndirect());
+			Register("POPI", s => s.PopIndirect());
 
 			Register("JPOS", (s, p) => s.JumpIfPositiveOrZero(p),true);
 			Register("JZER", (s, p) => s.JumpIfZero(p), true);
@@ -144,8 +144,8 @@ namespace Machine
 			Register("JUMP", (s, p) => s.Jump(p), true);
 
 			Register("CALL", (s, p) => s.Call(p), true);
-			Register("RETN", (s) => s.Return());
-			Register("SWAP", (s) => s.Swap());
+			Register("RETN", s => s.Return());
+			Register("SWAP", s => s.Swap());
 
 			Register("INSP", (s, p) => s.IncreaseStackPointer(p));
 			Register("DESP", (s, p) => s.DecreaseStackPointer(p));
@@ -188,8 +188,8 @@ namespace Machine
 				var parts = cmd.Split(new char[] { ' ' }, 2, StringSplitOptions.RemoveEmptyEntries);
 				for (int i = 0; i < parts.Length; i++)
 					parts[i] = parts[i].Trim();
-
-				Command = parts[0].ToUpper();
+				if (parts.Length > 0)
+					Command = parts[0].ToUpper();
 				if (parts.Length > 1)
 					Parameter = parts[1];
 			}
