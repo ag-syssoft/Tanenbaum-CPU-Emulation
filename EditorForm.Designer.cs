@@ -70,6 +70,7 @@
 			this.codeInputBox.Size = new System.Drawing.Size(801, 589);
 			this.codeInputBox.TabIndex = 6;
 			this.codeInputBox.Text = "";
+			this.codeInputBox.TextChanged += new System.EventHandler(this.codeInputBox_TextChanged);
 			// 
 			// EditorForm
 			// 

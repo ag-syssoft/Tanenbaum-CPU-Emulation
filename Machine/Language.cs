@@ -152,46 +152,161 @@ namespace Machine
 		}
 
 
-
-		private struct Line
+		public struct ParsedSegment
 		{
-			public readonly string Comment;
-			public readonly string Label;
-			public readonly string Command, Parameter;
+			public readonly string Value;
+			public readonly int Start;
+
+			private ParsedSegment(string value, int start)
+			{
+				Value = value;
+				Start = start;
+			}
+
+			public ParsedSegment(ParsedSegment source, int offset)
+			{
+				Start = offset + source.Start;
+				Value = source.Value.Substring(offset);
+			}
+			public ParsedSegment(ParsedSegment source, int offset, int length)
+			{
+				Start = offset + source.Start;
+				Value = source.Value.Substring(offset, length);
+			}
+
+			public ParsedSegment(string line)
+			{
+				Value = line;
+				Start = 0;
+			}
 
 			public bool IsEmpty
 			{
 				get
 				{
-					return Command == null;
+					return Value == null;
+				}
+			}
+			public bool HasValue
+			{
+				get
+				{
+					return Value != null;
 				}
 			}
 
-			public Line(string line) : this()
+			public static bool operator ==(ParsedSegment seg, string str)
 			{
-				string cmd = line;
-				int at = cmd.IndexOf("//");
+				return seg.Value == str;
+			}
+			public static bool operator !=(ParsedSegment seg, string str)
+			{
+				return seg.Value != str;
+			}
+
+			public int IndexOf(string v)
+			{
+				return Value.IndexOf(v);
+			}
+
+			public ParsedSegment Substring(int start, int length)
+			{
+				return new ParsedSegment(this, start, length);
+			}
+
+			public override string ToString()
+			{
+				return Value ?? "<null>";
+			}
+
+			public int Length
+			{
+				get
+				{
+					return Value != null ? Value.Length : 0;
+				}
+			}
+
+			public ParsedSegment Trim()
+			{
+				int start = 0;
+				while (start < Value.Length && Char.IsWhiteSpace(Value[start]))
+					start++;
+				int end = Value.Length;
+				while (end > 0 && Char.IsWhiteSpace(Value[end - 1]))
+					end--;
+				if (end <= start)
+					return new ParsedSegment();
+				return Substring(start, end - start);
+			}
+
+			public ParsedSegment Substring(int start)
+			{
+				return new ParsedSegment(this, start);
+			}
+
+			public ParsedSegment[] SplitWhitespace()
+			{
+				List<ParsedSegment> segs = new List<ParsedSegment>();
+				int from = 0;
+				for (int i = 0; i < Length; i++)
+				{
+					if (Char.IsWhiteSpace(Value[i]))
+					{
+						if (from != i)
+							segs.Add(Substring(from, i - from));
+						from = i + 1;
+					}
+				}
+				if (from != Length)
+					segs.Add(Substring(from));
+				return segs.ToArray();
+			}
+
+			public ParsedSegment ToUpper()
+			{
+				return new ParsedSegment(Value.ToUpper(), Start);
+			}
+		}
+
+		public struct PreParsedLine
+		{
+			public readonly ParsedSegment Comment;
+			public readonly ParsedSegment Label;
+			public readonly ParsedSegment Command, Parameter;
+
+			public bool IsEmpty
+			{
+				get
+				{
+					return Command.IsEmpty;
+				}
+			}
+
+			public PreParsedLine(ParsedSegment source) : this()
+			{
+				int at = source.IndexOf("//");
 				if (at >= 0)
 				{
-					Comment = cmd.Substring(at + 2);
-					cmd = cmd.Substring(0, at);
+					Comment = new ParsedSegment(source, at);
+					source = source.Substring(0, at);
 				}
-				cmd = cmd.Trim();
-				if (cmd.Length == 0)
+				source = source.Trim();
+				if (source.Length == 0)
 					return;
-				int colon = cmd.IndexOf(":");
+				int colon = source.IndexOf(":");
 				if (colon >= 0)
 				{
-					Label = cmd.Substring(0, colon).Trim();
-					cmd = cmd.Substring(colon + 1).Trim();
+					Label = source.Substring(0, colon).Trim();
+					source = source.Substring(colon + 1).Trim();
 				}
-				var parts = cmd.Split(new char[] { ' ' }, 2, StringSplitOptions.RemoveEmptyEntries);
-				for (int i = 0; i < parts.Length; i++)
-					parts[i] = parts[i].Trim();
+				var parts = source.SplitWhitespace();
 				if (parts.Length > 0)
 					Command = parts[0].ToUpper();
 				if (parts.Length > 1)
 					Parameter = parts[1];
+				if (parts.Length > 2)
+					throw new ArgumentException("Parsed line has more than two parts");
 			}
 
 		}
@@ -203,14 +318,22 @@ namespace Machine
 			var instructions = new List<Instruction>();
 			lineIndex = 0;
 			int commandCounter = 0;
+
 			foreach (var line in lines)
 			{
 				lineIndex++;
-				var l = new Line(line);
-				if (l.Label != null)
-					labels.Add(l.Label, commandCounter);
-				if (!l.IsEmpty)
-					commandCounter++;
+				try
+				{
+					var l = new PreParsedLine(new ParsedSegment(line));
+					if (l.Label.HasValue)
+						labels.Add(l.Label.Value, commandCounter);
+					if (!l.IsEmpty)
+						commandCounter++;
+				}
+				catch (Exception ex)
+				{
+					throw new CommandException(ex, line, lineIndex);
+				}
 			}
 
 
@@ -218,7 +341,7 @@ namespace Machine
 			foreach (var line in lines)
 			{
 				lineIndex++;
-				var l = new Line(line);
+				var l = new PreParsedLine(new ParsedSegment(line));
 				if (l.IsEmpty)
 					continue;
 
@@ -233,7 +356,7 @@ namespace Machine
 					Language.Command command;
 					try
 					{
-						command = Language.FindCommand(l.Command, l.Parameter != null);
+						command = Language.FindCommand(l.Command.Value, l.Parameter != null);
 					}
 					catch (Exception ex)
 					{
@@ -252,10 +375,10 @@ namespace Machine
 						bool wantLabel = command.WantsLabel;
 						if (wantLabel)
 						{
-							if (!labels.TryGetValue(l.Parameter, out x))
+							if (!labels.TryGetValue(l.Parameter.Value, out x))
 								throw new ArgumentException("Unable to find label '" + l.Parameter + "' of line '" + line + "'");
 						}
-						else if (!int.TryParse(l.Parameter, out x))
+						else if (!int.TryParse(l.Parameter.Value, out x))
 						{
 							throw new ArgumentException("Unable to parse parameter '" + l.Parameter + "' of line '" + line + "'");
 						}
