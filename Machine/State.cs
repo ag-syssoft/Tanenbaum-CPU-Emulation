@@ -4,10 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Tanenbaum_CPU_Emulator
+namespace Machine
 {
 
-	public class MachineState
+	public class State
 	{
 		public int ac = 0;  //accumulator
 		public int pc = 0;  //program-counter
@@ -217,51 +217,10 @@ namespace Tanenbaum_CPU_Emulator
 		{
 			if (x < 0 || x >= m.Length)
 			{
-				throw new Exception("Index out of bounds for memory access: " + x + "/" + m.Length);
-
+				throw new ArgumentException("Index out of bounds for memory access: " + x + ". Should be in [0," + m.Length+")");
 			}
-
 		}
 
-		public static void RegisterMethods()
-		{
-			CommandMap.RegisterWithParameter("LOCO", "LoadConstant");
-			CommandMap.RegisterWithParameter("SUBL", "SubStackRelative");
-			CommandMap.RegisterWithParameter("ADDL", "AddStackRelative");
-			CommandMap.RegisterWithParameter("STOL", "StoreStackRelative");
-			CommandMap.RegisterWithParameter("LODL", "LoadStackRelative");
-
-			CommandMap.RegisterWithParameter("LODD", "LoadDirect");
-			CommandMap.RegisterWithParameter("STOD", "StoreDirect");
-			CommandMap.RegisterWithParameter("ADDD", "AddDirect");
-			CommandMap.RegisterWithParameter("SUBD", "SubDirect");
-
-			CommandMap.Register("PUSH", "Push");
-			CommandMap.Register("POP", "Pop");
-			CommandMap.Register("PSHI", "PushIndirect");
-			CommandMap.Register("POPI", "PopIndirect");
-
-			CommandMap.RegisterWithParameter("JPOS", "JumpIfPositiveOrZero");
-			CommandMap.RegisterWithParameter("JZER", "JumpIfZero");
-			CommandMap.RegisterWithParameter("JNEG", "JumpIfNegative");
-			CommandMap.RegisterWithParameter("JNZE", "JumpIfNotZero");
-			CommandMap.RegisterWithParameter("JUMP", "Jump");
-
-			CommandMap.RegisterWithParameter("CALL", "Call");
-			CommandMap.Register("RETN", "Return");
-			CommandMap.Register("SWAP", "Swap");
-
-			CommandMap.RegisterWithParameter("INSP", "IncreaseStackPointer");
-			CommandMap.RegisterWithParameter("DESP", "DecreaseStackPointer");
-
-
-			CommandMap.wantsLabel.Add("JPOS");
-			CommandMap.wantsLabel.Add("JZER");
-			CommandMap.wantsLabel.Add("JNEG");
-			CommandMap.wantsLabel.Add("JNZE");
-			CommandMap.wantsLabel.Add("JUMP");
-			CommandMap.wantsLabel.Add("CALL");
-		}
 	}
 
 

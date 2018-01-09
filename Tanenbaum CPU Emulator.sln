@@ -1,9 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.24720.0
+# Visual Studio 15
+VisualStudioVersion = 15.0.27130.2010
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tanenbaum CPU Emulator", "Tanenbaum CPU Emulator.csproj", "{AAFD0561-EF99-4F64-A176-6AF8EC282BC5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Console Emulator", "Console Emulator\Console Emulator.csproj", "{398A6DFD-4D0F-459D-995B-E349EA7C1E34}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Machine", "Machine\Machine.csproj", "{4F4D14D6-A04E-4A26-A710-EE2BCEBF8C40}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,8 +19,19 @@ Global
 		{AAFD0561-EF99-4F64-A176-6AF8EC282BC5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AAFD0561-EF99-4F64-A176-6AF8EC282BC5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AAFD0561-EF99-4F64-A176-6AF8EC282BC5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{398A6DFD-4D0F-459D-995B-E349EA7C1E34}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{398A6DFD-4D0F-459D-995B-E349EA7C1E34}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{398A6DFD-4D0F-459D-995B-E349EA7C1E34}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{398A6DFD-4D0F-459D-995B-E349EA7C1E34}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4F4D14D6-A04E-4A26-A710-EE2BCEBF8C40}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4F4D14D6-A04E-4A26-A710-EE2BCEBF8C40}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4F4D14D6-A04E-4A26-A710-EE2BCEBF8C40}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4F4D14D6-A04E-4A26-A710-EE2BCEBF8C40}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {BABF4271-A8E5-4D01-BE54-16B3D49D506E}
 	EndGlobalSection
 EndGlobal

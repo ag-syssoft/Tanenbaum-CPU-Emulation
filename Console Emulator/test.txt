@@ -1,0 +1,12 @@
+loco 10
+stol 3
+loco 1
+stol 2
+lodl 3
+
+loop:
+subl 2
+jnze loop
+
+
+

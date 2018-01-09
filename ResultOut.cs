@@ -33,8 +33,8 @@ namespace Tanenbaum_CPU_Emulator
 		}
 
 
-		private MachineState machineState;
-		private InstructionSequence sequence;
+		private Machine.State machineState;
+		private Machine.InstructionSequence sequence;
 		private bool canResume = true;
 		private int instructionCounter = 0;
 
@@ -49,9 +49,9 @@ namespace Tanenbaum_CPU_Emulator
 			programCounter.Enabled = false;
 		}
 
-		public void Run(InstructionSequence seq)
+		public void Run(Machine.InstructionSequence seq)
 		{
-			machineState = new MachineState();
+			machineState = new Machine.State();
 			sequence = seq;
 			pauseButton.Text = "Pause";
 			pauseButton.Enabled = true;
@@ -62,8 +62,8 @@ namespace Tanenbaum_CPU_Emulator
 
 		private void programCounter_Tick(object sender, EventArgs e)
 		{
-			MachineState st = machineState;
-			InstructionSequence p = sequence;
+			Machine.State st = machineState;
+			Machine.InstructionSequence p = sequence;
 			if (!canResume)
 			{
 				End();
@@ -79,13 +79,13 @@ namespace Tanenbaum_CPU_Emulator
 						break;
 					}
 					instructionCounter++;
-					InstructionSequence.Instruction inst = p.instructions[st.pc];
+					Machine.InstructionSequence.Instruction inst = p.instructions[st.pc];
 					st.pc++;
 					Log(inst.line);
-					if (!inst.hasParameter)
+					if (!inst.parameter.HasValue)
 					{
 						if (inst.cmd != null)
-							inst.cmd(st);
+							inst.cmd(st,0);
 						else
 						{
 							End();
@@ -93,7 +93,7 @@ namespace Tanenbaum_CPU_Emulator
 						}
 					}
 					else
-						inst.pcmd(st, inst.parameter);
+						inst.cmd(st, inst.parameter.Value);
 
 					foreach (string l in st.log)
 						Log("    " + l);

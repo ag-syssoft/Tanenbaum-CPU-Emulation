@@ -17,9 +17,6 @@ namespace Tanenbaum_CPU_Emulator
 		public EditorForm()
 		{
 			InitializeComponent();
-
-			MachineState.RegisterMethods();
-
 		}
 
 		private ResultOut resultOut;
@@ -49,131 +46,38 @@ namespace Tanenbaum_CPU_Emulator
 			resultOut.LogFatal(message);
 		}
 
-		private InstructionSequence ParseCode(string[] lines)
-		{
 
+		private void runToolStripMenuItem1_Click(object sender, EventArgs e)
+		{
+			ClearLog();
+
+			Machine.InstructionSequence p = null;
 			try
 			{
-				InstructionSequence p = new InstructionSequence();
-				int lineIndex = 0;
-				foreach (var line in lines)
-				{
-					lineIndex++;
-					string cmd = line;
-					int at = cmd.IndexOf("//");
-					if (at >= 0)
-					{
-						cmd = cmd.Substring(0, at);
-					}
-					cmd = cmd.Trim();
-					if (cmd.Length == 0)
-						continue;
-					int colon = cmd.IndexOf(":");
-					string label = null;
-					if (colon >= 0)
-					{
-						label = cmd.Substring(0, colon).Trim();
-						cmd = cmd.Substring(colon + 1).Trim();
-					}
-					InstructionSequence.Instruction inst = new InstructionSequence.Instruction();
-					string[] parts = cmd.Split(new char[] { ' ' }, 2, StringSplitOptions.RemoveEmptyEntries);
-					for (int i = 0; i < parts.Length; i++)
-						parts[i] = parts[i].Trim();
-					if (parts.Length == 0)
-					{
-						if (label != null)
-							p.labels.Add(label, p.instructions.Count);
-						continue;
-					}
-					string commandName = parts[0].ToUpper();
-					if (label != null)
-						inst.line = label + "(=" + p.instructions.Count + "): ";
-					else
-						inst.line = "(" + p.instructions.Count + "): ";
-					if (parts.Length == 2)
-					{
-						int x = 0;
-						bool wantLabel = CommandMap.wantsLabel.Contains(commandName);
-						if (wantLabel)
-							inst.labelParameter = parts[1];
-						if (
-								//(wantLabel && !p.labels.TryGetValue(parts[1], out x))
-								//||
-								(!wantLabel && !int.TryParse(parts[1], out x))
-							)
-						{
-							throw new Exception("Unable to parse parameter '" + parts[1] + "' of line '" + line + "'");
-						}
-						if (!CommandMap.parameterCommands.TryGetValue(commandName, out inst.pcmd))
-							throw new CommandNotFoundException(commandName, line, lineIndex, false);
-						inst.parameter = x;
-						inst.hasParameter = true;
-						inst.line += commandName + " " + (wantLabel ? parts[1] : x.ToString());
-					}
-					else
-					{
-						if (!CommandMap.plainCommands.TryGetValue(commandName, out inst.cmd))
-						{
-							if (commandName == "END")
-								inst.cmd = null;
-							else
-							{
-								throw new CommandNotFoundException(commandName, line, lineIndex, CommandMap.parameterCommands.ContainsKey(commandName));
-							}
-						}
-						inst.line += parts[0];
-					}
-					if (label != null)
-					{
-						p.labels.Add(label, p.instructions.Count);
-					}
-					p.instructions.Add(inst);
-				}
-
-				for (int i = 0; i < p.instructions.Count; i++)
-				{
-					if (p.instructions[i].labelParameter != null)
-					{
-						int x;
-						InstructionSequence.Instruction inst = p.instructions[i];
-						if (!p.labels.TryGetValue(inst.labelParameter, out x))
-						{
-							throw new Exception("Unable to find label '" + inst.labelParameter + "' of line '" + inst.line + "'");
-
-						}
-						inst.parameter = x;
-						inst.line += " (=" + x + ")";
-						p.instructions[i] = inst;
-					}
-
-				}
-				return p;
+				p = Machine.InstructionSequence.Parse(codeInputBox.Lines);
 			}
-			catch (CommandNotFoundException ex)
+			catch (Machine.CommandException ex)
 			{
 				LogFatal(ex.Message);
 				Log("Known commands: ");
 				Log("  [label]:");
 				Log("  END");
-				foreach (var cmd in CommandMap.plainCommands)
-					Log("  " + cmd.Key);
-				foreach (var cmd in CommandMap.parameterCommands)
-					if (CommandMap.wantsLabel.Contains(cmd.Key))
-						Log("  "+cmd.Key + " [label]");
+				foreach (var cmd in Machine.Language.Commands)
+					if (cmd.RequiresParameter)
+					{
+						if (cmd.WantsLabel)
+							Log("  " + cmd.Name + " [label]");
+						else
+							Log("  " + cmd.Name + " [number]");
+					}
 					else
-						Log("  " + cmd.Key + " [number]");
+						Log("  " + cmd.Name);
 			}
 			catch (Exception ex)
 			{
 				LogFatal(ex.Message);
 			}
-			return null;
-		}
 
-		private void runToolStripMenuItem1_Click(object sender, EventArgs e)
-		{
-			ClearLog();
-			InstructionSequence p = ParseCode(codeInputBox.Lines);
 			if (p == null)
 				return;
 			MakeLog();
