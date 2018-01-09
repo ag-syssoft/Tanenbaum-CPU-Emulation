@@ -163,6 +163,12 @@ namespace Machine
 				Start = start;
 			}
 
+			public override bool Equals(object o)
+			{
+				return o is ParsedSegment && ((ParsedSegment)o) == this;
+			}
+
+
 			public ParsedSegment(ParsedSegment source, int offset)
 			{
 				Start = offset + source.Start;
@@ -203,6 +209,17 @@ namespace Machine
 			{
 				return seg.Value != str;
 			}
+
+			public static bool operator ==(ParsedSegment a, ParsedSegment b)
+			{
+				return a.Value == b.Value && a.Start == b.Start;
+			}
+			public static bool operator !=(ParsedSegment a, ParsedSegment b)
+			{
+				return !(a == b);
+			}
+
+
 
 			public int IndexOf(string v)
 			{
@@ -266,6 +283,14 @@ namespace Machine
 			public ParsedSegment ToUpper()
 			{
 				return new ParsedSegment(Value.ToUpper(), Start);
+			}
+
+			public override int GetHashCode()
+			{
+				var hashCode = -1754190471;
+				hashCode = hashCode * -1521134295 + Value.GetHashCode();
+				hashCode = hashCode * -1521134295 + Start.GetHashCode();
+				return hashCode;
 			}
 		}
 
