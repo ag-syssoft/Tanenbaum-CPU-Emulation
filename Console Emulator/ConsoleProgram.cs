@@ -16,10 +16,10 @@ namespace Console_Emulator
 				Console.Error.WriteLine("Usage: trun filename");
 				return;
 			}
-			Machine.Execution exec = null;
+			Machine.Emulator exec = null;
 			try
 			{
-				exec = new Machine.Execution(Machine.Language.Parse(File.ReadAllLines(args[0])), x => Console.WriteLine(x));
+				exec = new Machine.Emulator(Machine.Language.Parse(File.ReadAllLines(args[0])), x => Console.WriteLine(x));
 				exec.Execute(int.MaxValue);
 			}
 			catch (Machine.CommandException ex)

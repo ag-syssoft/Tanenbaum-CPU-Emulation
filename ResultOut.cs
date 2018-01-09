@@ -32,7 +32,7 @@ namespace Tanenbaum_CPU_Emulator
 			resultBox.Items.Add("Fatal: "+message);
 		}
 
-		private Machine.Execution exec;
+		private Machine.Emulator exec;
 
 		private void End()
 		{
@@ -47,7 +47,7 @@ namespace Tanenbaum_CPU_Emulator
 
 		public void Run(Machine.Instruction[] program)
 		{
-			exec = new Machine.Execution(program, x => Log(x));
+			exec = new Machine.Emulator(program, x => Log(x));
 			pauseButton.Text = "Pause";
 			pauseButton.Enabled = true;
 			programCounter.Enabled = true;

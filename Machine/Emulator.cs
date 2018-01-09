@@ -6,7 +6,11 @@ using System.Threading.Tasks;
 
 namespace Machine
 {
-	public class Execution
+	/// <summary>
+	/// Machine execution state.
+	/// This is the central class to create when running the Tanenbaum emulator
+	/// </summary>
+	public class Emulator
 	{
 		private Instruction[] program;
 		private State state = new State();
@@ -14,16 +18,27 @@ namespace Machine
 
 		private Action<string> logOut;
 
-		public Execution(Instruction[] program, Action<string> log)
+		/// <summary>
+		/// Constructs a new execution from a given program
+		/// </summary>
+		/// <param name="program">Program to execute. May be empty or null, causing the execution to immediately end</param>
+		/// <param name="log">Logging function. May be null, disabling log output</param>
+		public Emulator(Instruction[] program, Action<string> log)
 		{
-			this.program = program;
+			this.program = program ?? new Instruction[0];
 			if (log != null)
 				logOut = log;
 			else
 				logOut = x => { };
 		}
 
+		/// <summary>
+		/// Number of instructions that have been executed
+		/// </summary>
 		public int InstructionCounter { get { return instructionCounter; } }
+		/// <summary>
+		/// Internal machine state
+		/// </summary>
 		public State State { get { return state; } }
 
 		/// <summary>
