@@ -12,12 +12,12 @@ This project is aimed at familiarizing students with the concept of processor mi
 As a result, all adresses may be used for data.
 
 ## Visual Editor/Simulator
-The visual application can be executed using the `Tanenbaum CPU Emulator.exe` executable, or compiling and running the `Tanenbaum CPU Emulator` project.
+The visual application can be executed using the `Tanenbaum CPU Emulator.exe` executable, or by compiling and running the `Tanenbaum CPU Emulator` project.
 It allows editing syntax highlighted programs, and running them.
 Actual execution is handled by a timer, and endless loops should never freeze the application.
 
 ## Console Based Simulator
-This console based simulator can be executed using the `trun.exe` executable, or compiling and running the `Console Emulator` project.
+This console based simulator can be executed using the `trun.exe` executable, or by compiling and running the `Console Emulator` project.
 It requires a path to a text file as parameter, which contains the program to execute.
 If the provided program produces an endless loop, the application will endlessly flood the console with updates at maximum speed until terminated via Ctrl+C.
 
