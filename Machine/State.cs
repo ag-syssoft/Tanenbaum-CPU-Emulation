@@ -18,6 +18,12 @@ namespace Machine
 
 		public List<string> log = new List<string>();
 
+
+		public State()
+		{
+			m[(int)Language.SpecialAddress.one] = 1;
+		}
+
 		private void Log(string msg)
 		{
 			log.Add(msg);

@@ -46,38 +46,51 @@ namespace Machine
 			/// Requires the state to modify, and the parameter specified during compilation
 			/// </summary>
 			public readonly Action<State, int> Action;
-			/// <summary>
-			/// True if the local command requires a parameter
-			/// </summary>
-			public readonly bool RequiresParameter;
-			/// <summary>
-			/// True if the local command requires a parameter which should be interpreted as a label.
-			/// False if RequiresParameter is false.
-			/// </summary>
-			public readonly bool WantsLabel;
 
-			public Command(string name, Action<State, int> action, bool wantsLabel)
+			public enum ParameterType
+			{
+				None,
+				Constant,
+				StackAddress,
+				NonNegativeConstant,
+				Address,
+				Label,
+			}
+
+			public readonly ParameterType Parameter;
+
+			public bool RequiresParameter
+			{
+				get
+				{
+					return Parameter != ParameterType.None;
+				}
+			}
+
+
+
+			public Command(string name, Action<State, int> action, ParameterType t)
 			{
 				Name = name;
 				Action = action;
-				WantsLabel = wantsLabel;
-				RequiresParameter = true;
+				if (t == ParameterType.None)
+					throw new ArgumentException("Trying to declare instruction requiring a parameter, but type is set to none");
+				Parameter = t;
 			}
 			public Command(string name, Action<State> action)
 			{
 				Name = name;
 				Action = (state, param) => action(state);
-				WantsLabel = false;
-				RequiresParameter = false;
+				Parameter = ParameterType.None;
 			}
 		}
 
 
 		private static Dictionary<string, Command> commands = new Dictionary<string, Command>();
 
-		private static void Register(string name, Action<State, int> action, bool wantsLabel = false)
+		private static void Register(string name, Action<State, int> action, Command.ParameterType t)
 		{
-			commands.Add(name, new Command(name, action, wantsLabel));
+			commands.Add(name, new Command(name, action, t));
 		}
 		private static void Register(string name, Action<State> action)
 		{
@@ -121,35 +134,58 @@ namespace Machine
 
 		static Language()
 		{
-			Register("LOCO", (s, p) => s.LoadConstant(p));
-			Register("SUBL", (s, p) => s.SubStackRelative(p));
-			Register("ADDL", (s, p) => s.AddStackRelative(p));
-			Register("STOL", (s, p) => s.StoreStackRelative(p));
-			Register("LODL", (s, p) => s.LoadStackRelative(p));
+			Register("LOCO", (s, p) => s.LoadConstant(p),Command.ParameterType.Constant);
+			Register("SUBL", (s, p) => s.SubStackRelative(p), Command.ParameterType.StackAddress);
+			Register("ADDL", (s, p) => s.AddStackRelative(p), Command.ParameterType.StackAddress);
+			Register("STOL", (s, p) => s.StoreStackRelative(p), Command.ParameterType.StackAddress);
+			Register("LODL", (s, p) => s.LoadStackRelative(p), Command.ParameterType.StackAddress);
 
-			Register("LODD", (s, p) => s.LoadDirect(p));
-			Register("STOD", (s, p) => s.StoreDirect(p));
-			Register("ADDD", (s, p) => s.AddDirect(p));
-			Register("SUBD", (s, p) => s.SubDirect(p));
+			Register("LODD", (s, p) => s.LoadDirect(p), Command.ParameterType.Address);
+			Register("STOD", (s, p) => s.StoreDirect(p), Command.ParameterType.Address);
+			Register("ADDD", (s, p) => s.AddDirect(p), Command.ParameterType.Address);
+			Register("SUBD", (s, p) => s.SubDirect(p), Command.ParameterType.Address);
 
 			Register("PUSH", s => s.Push());
 			Register("POP",  s => s.Pop());
 			Register("PSHI", s => s.PushIndirect());
 			Register("POPI", s => s.PopIndirect());
 
-			Register("JPOS", (s, p) => s.JumpIfPositiveOrZero(p),true);
-			Register("JZER", (s, p) => s.JumpIfZero(p), true);
-			Register("JNEG", (s, p) => s.JumpIfNegative(p),true);
-			Register("JNZE", (s, p) => s.JumpIfNotZero(p), true);
-			Register("JUMP", (s, p) => s.Jump(p), true);
+			Register("JPOS", (s, p) => s.JumpIfPositiveOrZero(p), Command.ParameterType.Label);
+			Register("JZER", (s, p) => s.JumpIfZero(p), Command.ParameterType.Label);
+			Register("JNEG", (s, p) => s.JumpIfNegative(p), Command.ParameterType.Label);
+			Register("JNZE", (s, p) => s.JumpIfNotZero(p), Command.ParameterType.Label);
+			Register("JUMP", (s, p) => s.Jump(p), Command.ParameterType.Label);
 
-			Register("CALL", (s, p) => s.Call(p), true);
+			Register("CALL", (s, p) => s.Call(p), Command.ParameterType.Label);
 			Register("RETN", s => s.Return());
 			Register("SWAP", s => s.Swap());
 
-			Register("INSP", (s, p) => s.IncreaseStackPointer(p));
-			Register("DESP", (s, p) => s.DecreaseStackPointer(p));
+			Register("INSP", (s, p) => s.IncreaseStackPointer(p), Command.ParameterType.NonNegativeConstant);
+			Register("DESP", (s, p) => s.DecreaseStackPointer(p), Command.ParameterType.NonNegativeConstant);
+
+			Register("HALT", s => s.pc = -1);
+
 		}
+
+
+		public enum SpecialAddress
+		{
+			a0 = 0x500,
+			a1 = 0x501,
+			a2 = 0x502,
+			a3 = 0x503,
+			a4 = 0x504,
+			a5 = 0x505,
+			a6 = 0x506,
+			a7 = 0x507,
+			a8 = 0x508,
+			a9 = 0x509,
+			a10 = 0x50a,
+			one = 0x50b,
+		}
+
+
+
 
 
 		public struct ParsedSegment
@@ -296,6 +332,7 @@ namespace Machine
 
 		public struct PreParsedLine
 		{
+			public readonly string InputLine;
 			public readonly ParsedSegment Comment;
 			public readonly ParsedSegment Label;
 			public readonly ParsedSegment Command, Parameter;
@@ -308,13 +345,24 @@ namespace Machine
 				}
 			}
 
-			public PreParsedLine(ParsedSegment source) : this()
+			public PreParsedLine(string input) : this()
 			{
-				int at = source.IndexOf("//");
-				if (at >= 0)
+				InputLine = input;
+				ParsedSegment source = new ParsedSegment(input);
+				int c0 = source.IndexOf("//");
+				int c1 = source.IndexOf(";");
+				if (c0 < 0)
+					c0 = int.MaxValue;
+				if (c1 < 0)
+					c1 = int.MaxValue;
+				int commentAt = Math.Min(c0, c1);
+
+				
+
+				if (commentAt < int.MaxValue)
 				{
-					Comment = new ParsedSegment(source, at);
-					source = source.Substring(0, at);
+					Comment = new ParsedSegment(source, commentAt);
+					source = source.Substring(0, commentAt);
 				}
 				source = source.Trim();
 				if (source.Length == 0)
@@ -336,6 +384,67 @@ namespace Machine
 
 		}
 
+		public enum ParsedType
+		{
+			Constant,
+			Address,
+			Label,
+			SpecialAddress,
+		}
+
+		private static int ParseNonNegative(PreParsedLine l)
+		{
+			int x = 0;
+			if (!int.TryParse(l.Parameter.Value, out x))
+				throw new ArgumentException("Unable to parse parameter '" + l.Parameter + "' of line '" + l.InputLine + "'");
+			if (x < 0)
+				throw new ArgumentException("Parameter '" + l.Parameter + "' of line '" + l.InputLine + "' must not be negative");
+			return x;
+		}
+
+		public static int ParseParameter(Command.ParameterType t, PreParsedLine l,  out ParsedType foundType,  Dictionary<string, int> labels = null)
+		{
+			int x = 0;
+			foundType = ParsedType.Constant;
+			switch (t)
+			{
+				case Command.ParameterType.Label:
+					if (labels != null && !labels.TryGetValue(l.Parameter.Value, out x))
+						throw new ArgumentException("Unable to find label '" + l.Parameter + "' of line '" + l.InputLine + "'");
+					foundType = ParsedType.Label;
+					break;
+				case Command.ParameterType.Constant:
+					if (!int.TryParse(l.Parameter.Value, out x))
+						throw new ArgumentException("Unable to parse parameter '" + l.Parameter + "' of line '" + l.InputLine + "'");
+					break;
+				case Command.ParameterType.NonNegativeConstant:
+					x = ParseNonNegative(l);
+					foundType = ParsedType.Constant;
+					break;
+				case Command.ParameterType.StackAddress:
+					x = ParseNonNegative(l);
+					foundType = ParsedType.Address;
+					break;
+				case Command.ParameterType.Address:
+					foundType = ParsedType.Address;
+					if (!int.TryParse(l.Parameter.Value, out x))
+					{
+						SpecialAddress addr;
+						if (Enum.TryParse(l.Parameter.Value, out addr))
+						{
+							x = (int)addr;
+							foundType = ParsedType.SpecialAddress;
+						}
+						else
+							throw new ArgumentException("Unable to parse parameter '" + l.Parameter + "' of line '" + l.InputLine + "'");
+					}
+					if (x < 0)
+						throw new ArgumentException("Parameter '" + l.Parameter + "' of line '" + l.InputLine + "' must not be negative");
+					break;
+			}
+			return x;
+		}
+
 		public static Instruction[] Parse(IEnumerable<string> lines)
 		{
 			int lineIndex = 0;
@@ -349,7 +458,7 @@ namespace Machine
 				lineIndex++;
 				try
 				{
-					var l = new PreParsedLine(new ParsedSegment(line));
+					var l = new PreParsedLine(line);
 					if (l.Label.HasValue)
 						labels.Add(l.Label.Value, commandCounter);
 					if (!l.IsEmpty)
@@ -366,59 +475,43 @@ namespace Machine
 			foreach (var line in lines)
 			{
 				lineIndex++;
-				var l = new PreParsedLine(new ParsedSegment(line));
+				var l = new PreParsedLine(line);
 				if (l.IsEmpty)
 					continue;
 
 				Action<State> action = null;
 				string lineText = "";
 
-				if (l.Command == "END")
-				{ }
+				Language.Command command;
+				try
+				{
+					command = Language.FindCommand(l.Command.Value, l.Parameter != null);
+				}
+				catch (Exception ex)
+				{
+					throw new CommandException(ex, line, lineIndex);
+				}
+				if (l.Label != null)
+					lineText = l.Label + "(=" + instructions.Count + "): ";
+				else
+					lineText = "(" + instructions.Count + "): ";
+
+
+
+				if (command.RequiresParameter)
+				{
+					ParsedType ignore;
+					int x = ParseParameter(command.Parameter, l, out ignore, labels);
+					action = (s) => command.Action(s, x);
+					lineText += command.Name + " " + l.Parameter;
+				}
 				else
 				{
-
-					Language.Command command;
-					try
-					{
-						command = Language.FindCommand(l.Command.Value, l.Parameter != null);
-					}
-					catch (Exception ex)
-					{
-						throw new CommandException(ex, line, lineIndex);
-					}
-					if (l.Label != null)
-						lineText = l.Label + "(=" + instructions.Count + "): ";
-					else
-						lineText = "(" + instructions.Count + "): ";
-
-
-
-					if (command.RequiresParameter)
-					{
-						int x = 0;
-						bool wantLabel = command.WantsLabel;
-						if (wantLabel)
-						{
-							if (!labels.TryGetValue(l.Parameter.Value, out x))
-								throw new ArgumentException("Unable to find label '" + l.Parameter + "' of line '" + line + "'");
-						}
-						else if (!int.TryParse(l.Parameter.Value, out x))
-						{
-							throw new ArgumentException("Unable to parse parameter '" + l.Parameter + "' of line '" + line + "'");
-						}
-						action = (s) => command.Action(s, x);
-						lineText += command.Name + " " + l.Parameter;
-					}
-					else
-					{
-						action = (s) => command.Action(s, 0);
-						lineText += command.Name;
-					}
+					action = (s) => command.Action(s, 0);
+					lineText += command.Name;
 				}
 				instructions.Add(new Instruction(action, lineText));
 			}
-
 			return instructions.ToArray();
 		}
 

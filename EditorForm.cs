@@ -63,15 +63,9 @@ namespace Tanenbaum_CPU_Emulator
 				LogFatal(ex.Message);
 				Log("Known commands: ");
 				Log("  [label]:");
-				Log("  END");
 				foreach (var cmd in Machine.Language.Commands)
 					if (cmd.RequiresParameter)
-					{
-						if (cmd.WantsLabel)
-							Log("  " + cmd.Name + " [label]");
-						else
-							Log("  " + cmd.Name + " [number]");
-					}
+						Log("  " + cmd.Name + " ["+cmd.Parameter+"]");
 					else
 						Log("  " + cmd.Name);
 			}
@@ -91,6 +85,7 @@ namespace Tanenbaum_CPU_Emulator
 		static Font defaultFont = new Font("Consolas", 10, FontStyle.Regular);
 		static Font commentFont = new Font("Consolas", 10, FontStyle.Italic);
 		static Font labelFont = new Font("Consolas", 10, FontStyle.Bold);
+		static Font specialAddressFont = new Font("Consolas", 10, FontStyle.Bold|FontStyle.Italic);
 		static Font errorFont = new Font("Consolas", 10, FontStyle.Bold | FontStyle.Underline);
 
 		[DllImport("user32.dll")]
@@ -128,18 +123,16 @@ namespace Tanenbaum_CPU_Emulator
 			{
 				try
 				{
-					var l = new Machine.Language.PreParsedLine(new Machine.Language.ParsedSegment(line));
-					bool parameterIsLabel = false;
+					var l = new Language.PreParsedLine(line);
+					var parameterType = Language.Command.ParameterType.None;
 					if (l.Command.HasValue)
 					{
 						Select(at, l.Command);
 						try
 						{
-							if (l.Command != "END")
-							{
-								var cmd = Language.FindCommand(l.Command.Value, l.Parameter.HasValue);  //trigger exceptions (if any)
-								parameterIsLabel = cmd.WantsLabel;
-							}
+							var cmd = Language.FindCommand(l.Command.Value, l.Parameter.HasValue);  //trigger exceptions (if any)
+							parameterType = cmd.Parameter;
+
 							codeInputBox.SelectionFont = commandFont;
 							codeInputBox.SelectionColor = Color.Blue;
 						}
@@ -174,24 +167,31 @@ namespace Tanenbaum_CPU_Emulator
 					if (l.Parameter.HasValue)
 					{
 						Select(at, l.Parameter);
-						if (!parameterIsLabel)
+						try
 						{
-							int x = 0;
-							if (!int.TryParse(l.Parameter.Value, out x))
+							Language.ParsedType t;
+							Language.ParseParameter(parameterType, l, out t);
+							switch (t)
 							{
-								codeInputBox.SelectionFont = errorFont;
-								codeInputBox.SelectionColor = Color.Maroon;
-							}
-							else
-							{
-								//codeInputBox.SelectionFont = labelFont;
-								codeInputBox.SelectionColor = Color.FromArgb(0xb0, 0x60, 0);
+								case Language.ParsedType.Constant:
+									codeInputBox.SelectionColor = Color.FromArgb(0xb0, 0x60, 0);
+									break;
+								case Language.ParsedType.Address:
+									codeInputBox.SelectionColor = Color.FromArgb(0,0xb0, 0x60);
+									break;
+								case Language.ParsedType.Label:
+									codeInputBox.SelectionFont = labelFont;
+									break;
+								case Language.ParsedType.SpecialAddress:
+									codeInputBox.SelectionFont = specialAddressFont;
+									codeInputBox.SelectionColor = Color.FromArgb(0x90, 0, 0x50);
+									break;
 							}
 						}
-						else
+						catch
 						{
-							codeInputBox.SelectionFont = labelFont;
-							codeInputBox.SelectionColor = Color.Black;
+							codeInputBox.SelectionFont = errorFont;
+							codeInputBox.SelectionColor = Color.Maroon;
 						}
 					}
 

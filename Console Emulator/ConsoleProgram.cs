@@ -27,15 +27,9 @@ namespace Console_Emulator
 				Console.Error.WriteLine(ex.Message);
 				Console.WriteLine("Known commands: ");
 				Console.WriteLine("  [label]:");
-				Console.WriteLine("  END");
 				foreach (var cmd in Machine.Language.Commands)
 					if (cmd.RequiresParameter)
-					{
-						if (cmd.WantsLabel)
-							Console.WriteLine("  " + cmd.Name + " [label]");
-						else
-							Console.WriteLine("  " + cmd.Name + " [number]");
-					}
+						Console.WriteLine("  " + cmd.Name + " ["+cmd.Parameter+"]");
 					else
 						Console.WriteLine("  " + cmd.Name);
 			}

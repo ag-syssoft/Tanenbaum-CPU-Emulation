@@ -69,7 +69,7 @@
 			this.codeInputBox.Name = "codeInputBox";
 			this.codeInputBox.Size = new System.Drawing.Size(801, 589);
 			this.codeInputBox.TabIndex = 6;
-			this.codeInputBox.Text = "//loop 10 times:\nloco 1\nstod 1\nloco 10\n\nloop:\nsubd 1\njnze loop\n\nend";
+			this.codeInputBox.Text = "//loop 10 times:\nloco 10\n\nloop:\nsubd one\njnze loop\n\nhalt\n";
 			this.codeInputBox.TextChanged += new System.EventHandler(this.codeInputBox_TextChanged);
 			// 
 			// EditorForm

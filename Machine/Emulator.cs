@@ -56,8 +56,6 @@ namespace Machine
 				var inst = program[state.pc];
 				state.pc++;
 				logOut(inst.Caption);
-				if (inst.Action == null)
-					return true;
 				inst.Action(state);
 
 				foreach (string l in state.log)
