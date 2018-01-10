@@ -17,7 +17,7 @@ namespace Machine
 		public int spCeiling = 0;	//to calculate stack progression
 		public int[] m = new int[MemorySize];
 
-		public const int MemorySize = 0x10000;
+		public const int MemorySize = 10000;
 
 		public List<string> log = new List<string>();
 

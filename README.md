@@ -7,7 +7,7 @@ This project is aimed at familiarizing students with the concept of assembler st
 
 1. An additional **HALT** instruction allows the simulation to end at any point in the code
 1. All values and parameters are handled as 32bit signed integers
-1. The full address space consists of **65536x 32bit** signed integers, instead of the original **4096x 16** bit words
+1. The full address space consists of **10000x 32bit** signed integers, instead of the original **4096x 16** bit words
 1. The program is converted into and executed as a sequence of parameterized method invocations, not actual byte code.
 It can therefor neither be read nor modified by the program itself, and the entire address space may be used for data.
 
@@ -32,7 +32,7 @@ Jump commands (`JUMP, JNZE, JZER, JNEG, JNZE`) require the parameter to be a lab
 Labels may be put before commands (e.g. `endless-loop: JUMP endless-loop`), or into their own lines. They may contain any non-whitespace characters, including numbers.
 Labels consisting only of numbers will always be interpreted as arbitrary strings, however, not as actual numeric program addresses.
 
-Address commands (`ADDD, SUBD, LODD, STOD`) accept address constants in the range [0,65535] in addition to named addresses *a0*=1280 through *a10*=1290, and *one*=1291.
+Address commands (`ADDD, SUBD, LODD, STOD`) accept address constants in the range [0,9999] in addition to named addresses *a0*=1280 through *a10*=1290, and *one*=1291.
 The value at address *one* is preinitialized with the value 1, but may be changed during runtime.
 Numeric parameters must be specified as decimal numbers.
 
@@ -46,7 +46,7 @@ Under regular circumstances the relative stack pointer position represents the n
 
 Execution starts with the top-most instruction specified in the program, and continues until the program either exits beyond the bottom most instruction,
 or executes the HALT command.
-It may also terminate unintentionally if access violations occur (e.g. by trying to read/write addresses beyond 65535).
+It may also terminate unintentionally if access violations occur (e.g. by trying to read/write addresses beyond 9999).
 
 During execution, each command logs the current program counter, executed instruction text, and any detected changes.
-The stack pointer is logged with both its negative relative and absolute address (`sp := [relative]/[absolute]`, e.g. *sp := -5/65531*).
+The stack pointer is logged with both its negative relative and absolute address (`sp := [relative]/[absolute]`, e.g. *sp := -5/9995*).
