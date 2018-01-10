@@ -216,14 +216,14 @@ namespace Machine
 		public void AddStackRelative(int x)
 		{
 			CheckAddr(sp + x);
-			Log("ac += m[sp+" + (x) + "]=" + m[sp + x]);
+			Log("ac += m[" + (sp+x) + "]=" + m[sp + x]);
 			ac = ac + m[sp + x];
 			LogAC();
 		}
 		public void SubStackRelative(int x)
 		{
 			CheckAddr(sp + x);
-			Log("ac -= m[sp+" + (x) + "]=" + m[sp + x]);
+			Log("ac -= m[" + (sp+x) + "]=" + m[sp + x]);
 			ac = ac - m[sp + x];
 			LogAC();
 		}
