@@ -39,17 +39,14 @@ Numeric parameters must be specified as decimal numbers.
 ## Execution
 The entire address space is initialized to 0, with the exception of the special address *one* (which is set to 1).
 
-The stack pointer wraps around as it reaches either extreme of the available address space.
-It is initialized with 0, but may be redefined using the SWAP command.
-If initialized to 0, a decrementing stack pointer wraps around to the largest possible address (65535) before progressing further downwards.
-Since PUSH decrements the stack pointer before writing to the new address, the value at address 0 remains unchanged in this case.
-The simulation keeps track of the initial stack value (0 unless SWAP is executed), and allows to log the stack pointer relative to its initial value.
-Under regular circumstances this relative position represents the stack fill level.
+The stack pointer is initialized to 0, but may be changed arbitrarily using the SWAP command.
+If it reaches either extreme of the available address space, it will wrap around to the opposing extreme.
+The simulation keeps track of the initial stack value (0 unless SWAP is executed), and allows to display the stack pointer relative to this initial value.
+Under regular circumstances the relative stack pointer position represents the negative stack fill level.
 
 Execution starts with the top-most instruction specified in the program, and continues until the program either exits beyond the bottom most instruction,
-or the HALT command is executed.
-It may also terminate if access violations occur (trying to read/write addresses beyond 65535, etc).
+or executes the HALT command.
+It may also terminate unintentionally if access violations occur (e.g. by trying to read/write addresses beyond 65535).
 
-During execution, each command prints the current program counter and any detected changes to the respective window or console log.
-
+During execution, each command logs the current program counter, executed instruction text, and any detected changes.
 The stack pointer is logged with both its negative relative and absolute address (`sp := [relative]/[absolute]`, e.g. *sp := -5/65531*).
