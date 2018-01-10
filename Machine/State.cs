@@ -14,7 +14,9 @@ namespace Machine
 		public int ac = 0;  //accumulator
 		public int pc = 0;  //program-counter
 		public int sp = 0;  //stack-pointer
-		public int[] m = new int[0x10000];
+		public int[] m = new int[MemorySize];
+
+		public const int MemorySize = 0x10000;
 
 		public List<string> log = new List<string>();
 
@@ -30,7 +32,7 @@ namespace Machine
 		}
 		private void LogSP()
 		{
-			Log("sp := " + (sp != 0 ? sp - m.Length : 0));
+			Log("sp := " + (sp != 0 ? sp - m.Length : 0)+"/"+sp);
 		}
 		private void LogM(int a)
 		{
