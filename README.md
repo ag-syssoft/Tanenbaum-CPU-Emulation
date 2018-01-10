@@ -31,14 +31,17 @@ Commands are not case-sensitive, but the execution log will print them in upper 
 All commands behave as defined in *Tanenbaum, A. (1990) "Structured Computer Organisation.", Prentice Hall, 3rd edition*.
 A documentation of all instructions may be found at [stvincent.edu](http://cis.stvincent.edu/carlsond/cs330/mic1/mic1doc.txt) (English), or [syssoft.blog](https://ca.syssoft.blog/wp-content/uploads/2018/01/2017W-CA06-Tanenbaum-CPU.pdf) (German).
 
-Jump commands (`JUMP, JNZE, JZER, JNEG, JNZE`) require the parameter to be a label, declared somewhere in the program. Labels are case-sensitive. Labels may be put before commands (e.g. `endless-loop: JUMP endless-loop`), or into their own lines. They may contain any non-whitespace characters, including numbers. Labels consisting only of numbers will always be interpreted as names, however, not as actual numeric program addresses.
+Jump commands (`JUMP, JNZE, JZER, JNEG, JNZE`) require the parameter to be a label, declared somewhere in the program.
+Labels are case-sensitive names that may contain any non-whitespace characters, including numbers.
+They may be put before commands (e.g. `endless-loop: JUMP endless-loop`), or appear on their own, in which case they point to the first following command (if any).
+Labels consisting only of numbers are interpreted as names, not as actual numeric program addresses.
 
 Address commands (`ADDD, SUBD, LODD, STOD`) require either numeric parameters in the range [0,9999] or any named address (*a0*=1280 through *a10*=1290, and *one*=1291).
 The value at address *one* is preinitialized with the value 1, but may be changed during runtime.
 Numeric parameters must be specified as decimal numbers.
 
 ## Execution
-The entire address space is initialized to 0, with the exception of the special address *one* (which is set to 1).
+All memory is initialized to 0, with the exception of the value at the special address *one* (which is set to 1).
 
 The stack pointer is initialized to 0, but may be changed arbitrarily using the SWAP command.
 If it reaches either extreme of the available address space, it will wrap around to the opposing extreme.
