@@ -9,7 +9,7 @@ This project is aimed at familiarizing students with the concept of assembler st
 1. All values and parameters are handled as 32bit signed integers
 1. The full address space consists of **65536x 32bit** signed integers, instead of the original **4096x 16** bit words
 1. The program is converted into and executed as a sequence of parameterized method invocations, not actual byte code.
-It can therefor neither be read nor modified by the program itself, and the entire address range may be used for data.
+It can therefor neither be read nor modified by the program itself, and the entire address space may be used for data.
 
 ## Visual Editor/Simulator
 The visual application can be executed using the `Tanenbaum CPU Emulator.exe` executable, or by compiling and running the `Tanenbaum CPU Emulator` project.
@@ -30,17 +30,21 @@ Commands are not case-sensitive, but the execution log will print them in upper 
 
 Jump commands (`JUMP, JNZE, JZER, JNEG, JNZE`) require the parameter to be a label, declared somewhere in the program. Labels are case-sensitive.
 Labels may be put before commands (e.g. `endless-loop: JUMP endless-loop`), or into their own lines. They may contain any non-whitespace characters, including numbers.
-Labels consisting only of numbers will always be interpreted as arbitrary strings, however, not as an actual numeric program address.
+Labels consisting only of numbers will always be interpreted as arbitrary strings, however, not as actual numeric program addresses.
 
-Address commands (`ADDD, SUBD, LODD, STOD`) accept address constants as well as special addresses *a0*=0x500 through *a10*=0x50A, and *one*=0x50B.
+Address commands (`ADDD, SUBD, LODD, STOD`) accept address constants in the range [0,65535] in addition to named addresses *a0*=1280 through *a10*=1290, and *one*=1291.
 The value at address *one* is preinitialized with the value 1, but may be changed during runtime.
+Numeric parameters must be specified as decimal numbers.
 
 ## Execution
 The entire address space is initialized to 0, with the exception of the special address *one* (which is set to 1).
 
-The stack pointer is initialized to 0, such that when it is decremented, it wraps around to the last possible address (65535), and then progresses downwards.
-If the stack is emptied during execution, then it will wrap around back to 0.
-Unless specific stack addresses are desired, it is not necessary to explicitly initialize the stack pointer.
+The stack pointer wraps around as it reaches either extreme of the available address space.
+It is initialized with 0, but may be redefined using the SWAP command.
+If initialized to 0, a decrementing stack pointer wraps around to the largest possible address (65535) before progressing further downwards.
+Since PUSH decrements the stack pointer before writing to the new address, the value at address 0 remains unchanged in this case.
+The simulation keeps track of the initial stack value (0 unless SWAP is executed), and allows to log the stack pointer relative to its initial value.
+Under regular circumstances this relative position represents the stack fill level.
 
 Execution starts with the top-most instruction specified in the program, and continues until the program either exits beyond the bottom most instruction,
 or the HALT command is executed.
@@ -48,7 +52,4 @@ It may also terminate if access violations occur (trying to read/write addresses
 
 During execution, each command prints the current program counter and any detected changes to the respective window or console log.
 
-The stack pointer is logged with both its relative and absolute address.
-Typically, the stack is initialized to 0 or some value via SWAP, then progresses downwards.
-The relative value indicates how far it has diverged from this initial value, and is depicted as a negative number that is 0 if the stack is empty.
-Practically, the stack can grow in either direction as much as it likes, so if the program does unusual things, the relative number will be off.
+The stack pointer is logged with both its negative relative and absolute address (`sp := [relative]/[absolute]`, e.g. *sp := -5/65531*).
