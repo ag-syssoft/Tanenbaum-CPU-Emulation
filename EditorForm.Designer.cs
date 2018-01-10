@@ -63,6 +63,7 @@
 			// 
 			// codeInputBox
 			// 
+			this.codeInputBox.AcceptsTab = true;
 			this.codeInputBox.Dock = System.Windows.Forms.DockStyle.Fill;
 			this.codeInputBox.Font = new System.Drawing.Font("Consolas", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 			this.codeInputBox.Location = new System.Drawing.Point(0, 24);

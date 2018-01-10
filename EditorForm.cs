@@ -233,6 +233,13 @@ namespace Tanenbaum_CPU_Emulator
 
 		private void EditorForm_Shown(object sender, EventArgs e)
 		{
+			codeInputBox.SelectAll();
+			int[] tabs = new int[32];
+			for (int i = 0; i < tabs.Length; i++)
+				tabs[i] = 28 * i;
+			codeInputBox.SelectionTabs = tabs;
+			codeInputBox.Select(0, 0);
+
 			ReColor();
 		}
 	}
