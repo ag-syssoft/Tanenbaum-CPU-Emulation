@@ -27,7 +27,7 @@ Commands are specified, one per line, in the form:\
 Alternatively, comments may also start with `//`.\
 Commands are not case-sensitive, but the execution log will print them in upper case. They may be indented using any number of white space characters.
 
-Jump commands (`JUMP, JNZE, JZER, JNEG, JNZE`) require the parameter to be a label, declared somewhere in the program.
+Jump commands (`JUMP, JNZE, JZER, JNEG, JNZE`) require the parameter to be a label, declared somewhere in the program. Labels are case-sensitive.
 Labels may be put before commands (e.g. `endless-loop: JUMP endless-loop`), or into their own lines. They may contain any non-whitespace characters, including numbers.
 Labels consisting only of numbers will always be interpreted as a label, however, not as an actual numeric program address.
 
