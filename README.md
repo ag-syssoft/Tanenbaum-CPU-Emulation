@@ -7,9 +7,9 @@ This project is aimed at familiarizing students with the concept of assembler st
 
 1. An additional **HALT** instruction allows the simulation to end at any point in the code
 1. All values and parameters are handled as 32bit signed integers
-1. The full address space consists of **10000x 32bit** signed integers, instead of the original **4096x 16** bit words
-1. The program is converted into and executed as a sequence of parameterized method invocations, not actual byte code.
-It can therefor neither be read nor modified by the program itself, and the entire address space may be used for data.
+1. The full address space consists of **10000x 32bit** signed integers, instead of the original **4096x 16bit** words
+1. The program is converted into and executed as a sequence of referenced method invocations, not actual byte code.
+The code can therefor neither be read nor modified by the program itself, and the entire address space may be used for data.
 
 ## Visual Editor/Simulator
 The visual application can be executed using the `Tanenbaum CPU Emulator.exe` executable, or by compiling and running the `Tanenbaum CPU Emulator` project.
