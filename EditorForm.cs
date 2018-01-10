@@ -61,13 +61,16 @@ namespace Tanenbaum_CPU_Emulator
 			catch (Machine.CommandException ex)
 			{
 				LogFatal(ex.Message);
-				Log("Known commands: ");
-				Log("  [label]:");
-				foreach (var cmd in Machine.Language.Commands)
-					if (cmd.RequiresParameter)
-						Log("  " + cmd.Name + " ["+cmd.Parameter+"]");
-					else
-						Log("  " + cmd.Name);
+				if (ex.InnerException is Machine.CommandNotFoundException)
+				{
+					Log("Known commands: ");
+					Log("  [label]:");
+					foreach (var cmd in Machine.Language.Commands)
+						if (cmd.RequiresParameter)
+							Log("  " + cmd.Name + " [" + cmd.Parameter + "]");
+						else
+							Log("  " + cmd.Name);
+				}
 			}
 			catch (Exception ex)
 			{

@@ -25,13 +25,16 @@ namespace Console_Emulator
 			catch (Machine.CommandException ex)
 			{
 				Console.Error.WriteLine(ex.Message);
-				Console.WriteLine("Known commands: ");
-				Console.WriteLine("  [label]:");
-				foreach (var cmd in Machine.Language.Commands)
-					if (cmd.RequiresParameter)
-						Console.WriteLine("  " + cmd.Name + " ["+cmd.Parameter+"]");
-					else
-						Console.WriteLine("  " + cmd.Name);
+				if (ex.InnerException is Machine.CommandNotFoundException)
+				{
+					Console.WriteLine("Known commands: ");
+					Console.WriteLine("  [label]:");
+					foreach (var cmd in Machine.Language.Commands)
+						if (cmd.RequiresParameter)
+							Console.WriteLine("  " + cmd.Name + " [" + cmd.Parameter + "]");
+						else
+							Console.WriteLine("  " + cmd.Name);
+				}
 			}
 			catch (Exception ex)
 			{
