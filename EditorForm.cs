@@ -107,6 +107,20 @@ namespace Tanenbaum_CPU_Emulator
 			parent.Refresh();
 		}
 
+		struct Selection
+		{
+			public int start, length;
+
+
+			public Selection(int offset, Language.ParsedSegment seg)
+			{
+				start = offset + seg.Start;
+				length = seg.Length;
+			}
+
+		}
+
+
 		private void ReColor()
 		{
 
@@ -120,6 +134,10 @@ namespace Tanenbaum_CPU_Emulator
 			codeInputBox.SelectAll();
 			codeInputBox.SelectionFont = defaultFont;
 			codeInputBox.SelectionColor = Color.Black;
+			int[] tabs = new int[32];
+			for (int i = 0; i < tabs.Length; i++)
+				tabs[i] = 28 * i;
+			codeInputBox.SelectionTabs = tabs;
 
 			int at = 0;
 			foreach (var line in codeInputBox.Lines)
@@ -223,24 +241,106 @@ namespace Tanenbaum_CPU_Emulator
 
 		private void Select(int offset, Language.ParsedSegment seg)
 		{
-			codeInputBox.Select(offset + seg.Start, seg.Length);
+			Select(new Selection(offset, seg));
 		}
+
+		private void Select(Selection sel)
+		{
+			codeInputBox.Select(sel.start,sel.length);
+		}
+
+		private Selection GetSelected()
+		{
+			return new Selection() { start = codeInputBox.SelectionStart, length = codeInputBox.SelectionLength };
+		}
+
+
+
+		List<string> back = new List<string>();
+		List<string> fore = new List<string>();
+		bool ignoreChange = false;
+		string lastText = null;
 
 		private void codeInputBox_TextChanged(object sender, EventArgs e)
 		{
+			bool actualChange = codeInputBox.Text != lastText;
+			if (!ignoreChange)
+			{
+				fore.Clear();
+				if (lastText != null)
+					back.Add(lastText);
+				if (back.Count > 1024)
+					back.RemoveRange(0, 64);//bulk
+			}
+			lastText = codeInputBox.Text;
 			ReColor();
 		}
 
 		private void EditorForm_Shown(object sender, EventArgs e)
 		{
-			codeInputBox.SelectAll();
-			int[] tabs = new int[32];
-			for (int i = 0; i < tabs.Length; i++)
-				tabs[i] = 28 * i;
-			codeInputBox.SelectionTabs = tabs;
-			codeInputBox.Select(0, 0);
-
 			ReColor();
+		}
+
+		private void codeInputBox_KeyPress(object sender, KeyPressEventArgs e)
+		{
+		}
+
+		private void codeInputBox_KeyUp(object sender, KeyEventArgs e)
+		{
+			if (e.Control)
+			{
+				var sel = GetSelected();
+				switch (e.KeyCode)
+				{
+					case Keys.C:
+						Clipboard.SetText(codeInputBox.Text);
+						e.Handled = true;
+						break;
+					case Keys.X:
+						Clipboard.SetText(codeInputBox.Text);
+						codeInputBox.Text = "";
+						e.Handled = true;
+						break;
+					case Keys.V:
+						codeInputBox.Text = Clipboard.GetText();
+						e.Handled = true;
+						break;
+					case Keys.A:
+						codeInputBox.SelectAll();
+						e.Handled = true;
+						break;
+					case Keys.Z:
+						{
+							if (back.Count > 0)
+							{
+								ignoreChange = true;
+								string text = back[back.Count - 1];
+								back.RemoveAt(back.Count - 1);
+								fore.Add(codeInputBox.Text);
+								codeInputBox.Text = text;
+								Select(sel);
+								ignoreChange = false;
+							}
+							e.Handled = true;
+						}
+						break;
+					case Keys.Y:
+						{
+							if (fore.Count > 0)
+							{
+								ignoreChange = true;
+								string text = fore[fore.Count - 1];
+								fore.RemoveAt(fore.Count - 1);
+								back.Add(codeInputBox.Text);
+								codeInputBox.Text = text;
+								Select(sel);
+								ignoreChange = false;
+							}
+							e.Handled = true;
+						}
+						break;
+				}
+			}
 		}
 	}
 
