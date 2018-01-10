@@ -84,12 +84,39 @@ namespace Tanenbaum_CPU_Emulator
 		}
 
 
-		static Font commandFont = new Font("Consolas", 10, FontStyle.Bold);
+
+		struct Style
+		{
+			public readonly Font Font;
+			public readonly Color Color;
+
+			public Style(FontStyle style, Color color)
+			{
+				Font = new Font("Consolas", 10, style);
+				this.Color = color;
+			}
+
+			public void ApplyToSelection(RichTextBox box)
+			{
+				box.SelectionFont = Font;
+				box.SelectionColor = Color;
+			}
+
+
+		};
+
+
+		static Style commandStyle = new Style(FontStyle.Bold, Color.Blue),
+					commandLacksParameterStyle = new Style(FontStyle.Bold, Color.Maroon),
+					constantStyle = new Style(FontStyle.Regular, Color.FromArgb(0xb0, 0x60, 0)),
+					stackDeltaStyle = new Style(FontStyle.Regular, Color.Blue),
+					addressStyle = new Style(FontStyle.Regular, Color.FromArgb(0, 0x60, 0x90));
+
 		static Font defaultFont = new Font("Consolas", 10, FontStyle.Regular);
-		static Font commentFont = new Font("Consolas", 10, FontStyle.Italic);
-		static Font labelFont = new Font("Consolas", 10, FontStyle.Bold);
-		static Font specialAddressFont = new Font("Consolas", 10, FontStyle.Bold|FontStyle.Italic);
-		static Font errorFont = new Font("Consolas", 10, FontStyle.Bold | FontStyle.Underline);
+		static Style commentStyle = new Style( FontStyle.Italic, Color.DarkGreen);
+		static Style labelStyle = new Style(FontStyle.Bold, Color.Black);
+		static Style specialAddressStyle =  new Style(FontStyle.Bold|FontStyle.Italic, Color.FromArgb(0x90, 0, 0x50));
+		static Style errorStyle = new Style(FontStyle.Bold | FontStyle.Underline, Color.Maroon);
 
 		[DllImport("user32.dll")]
 		public static extern int SendMessage(IntPtr hWnd, Int32 wMsg, bool wParam, Int32 lParam);
@@ -153,36 +180,27 @@ namespace Tanenbaum_CPU_Emulator
 						{
 							var cmd = Language.FindCommand(l.Command.Value, l.Parameter.HasValue);  //trigger exceptions (if any)
 							parameterType = cmd.Parameter;
-
-							codeInputBox.SelectionFont = commandFont;
-							codeInputBox.SelectionColor = Color.Blue;
+							Apply(commandStyle);
 						}
 						catch (Machine.CommandRequiresParameterException)
 						{
-							codeInputBox.SelectionFont = commandFont;
-							codeInputBox.SelectionColor = Color.Maroon;
+							Apply(commandLacksParameterStyle);
 						}
 						catch (Machine.CommandDoesNotSupportParameterException)
 						{
-							codeInputBox.SelectionFont = commandFont;
-							codeInputBox.SelectionColor = Color.Blue;
+							Apply(commandStyle);
 
-							Select(at,l.Parameter);
-							codeInputBox.SelectionFont = errorFont;
-							codeInputBox.SelectionColor = Color.Maroon;
+							Select(at,l.Parameter); Apply(errorStyle);
 						}
 						catch
 						{
-							codeInputBox.SelectionFont = errorFont;
-							codeInputBox.SelectionColor = Color.Maroon;
+							Apply(errorStyle);
 						}
 					}
 
 					if (l.Label.HasValue)
 					{
-						Select(at,l.Label);
-						codeInputBox.SelectionFont = labelFont;
-						codeInputBox.SelectionColor = Color.Black;
+						Select(at,l.Label); Apply(labelStyle);
 					}
 
 					if (l.Parameter.HasValue)
@@ -195,39 +213,38 @@ namespace Tanenbaum_CPU_Emulator
 							switch (t)
 							{
 								case Language.ParsedType.Constant:
-									codeInputBox.SelectionColor = Color.FromArgb(0xb0, 0x60, 0);
+									Apply(constantStyle);
+									break;
+								case Language.ParsedType.StackDelta:
+									Apply(stackDeltaStyle);
 									break;
 								case Language.ParsedType.Address:
-									codeInputBox.SelectionColor = Color.FromArgb(0,0xb0, 0x60);
+									Apply(addressStyle);
 									break;
 								case Language.ParsedType.Label:
-									codeInputBox.SelectionFont = labelFont;
+									Apply(labelStyle);
 									break;
 								case Language.ParsedType.SpecialAddress:
-									codeInputBox.SelectionFont = specialAddressFont;
-									codeInputBox.SelectionColor = Color.FromArgb(0x90, 0, 0x50);
+									Apply(specialAddressStyle);
 									break;
 							}
 						}
 						catch
 						{
-							codeInputBox.SelectionFont = errorFont;
-							codeInputBox.SelectionColor = Color.Maroon;
+							Apply(errorStyle);
 						}
 					}
 
 					if (l.Comment.HasValue)
 					{
 						Select(at,l.Comment);
-						codeInputBox.SelectionFont = commentFont;
-						codeInputBox.SelectionColor = Color.DarkGreen;
+						Apply(commentStyle);
 					}
 				}
 				catch
 				{
 					codeInputBox.Select(at, line.Length);
-					codeInputBox.SelectionFont = errorFont;
-					codeInputBox.SelectionColor = Color.Maroon;
+					Apply(errorStyle);
 				}
 
 
@@ -237,6 +254,11 @@ namespace Tanenbaum_CPU_Emulator
 
 			codeInputBox.Select(start, len);
 			ResumeDrawing(this);
+		}
+
+		private void Apply(Style style)
+		{
+			style.ApplyToSelection(codeInputBox);
 		}
 
 		private void Select(int offset, Language.ParsedSegment seg)

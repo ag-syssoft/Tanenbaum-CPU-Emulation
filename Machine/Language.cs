@@ -52,7 +52,7 @@ namespace Machine
 				None,
 				Constant,
 				StackAddress,
-				NonNegativeConstant,
+				StackDelta,
 				Address,
 				Label,
 			}
@@ -160,8 +160,8 @@ namespace Machine
 			Register("RETN", s => s.Return());
 			Register("SWAP", s => s.Swap());
 
-			Register("INSP", (s, p) => s.IncreaseStackPointer(p), Command.ParameterType.NonNegativeConstant);
-			Register("DESP", (s, p) => s.DecreaseStackPointer(p), Command.ParameterType.NonNegativeConstant);
+			Register("INSP", (s, p) => s.IncreaseStackPointer(p), Command.ParameterType.StackDelta);
+			Register("DESP", (s, p) => s.DecreaseStackPointer(p), Command.ParameterType.StackDelta);
 
 			Register("HALT", s => s.pc = -1);
 
@@ -387,6 +387,7 @@ namespace Machine
 		public enum ParsedType
 		{
 			Constant,
+			StackDelta,
 			Address,
 			Label,
 			SpecialAddress,
@@ -420,9 +421,9 @@ namespace Machine
 					if (!int.TryParse(l.Parameter.Value, out x))
 						throw new ArgumentException("Unable to parse parameter '" + l.Parameter + "' of line '" + l.InputLine + "'");
 					break;
-				case Command.ParameterType.NonNegativeConstant:
+				case Command.ParameterType.StackDelta:
 					x = ParseNonNegative(l);
-					foundType = ParsedType.Constant;
+					foundType = ParsedType.StackDelta;
 					break;
 				case Command.ParameterType.StackAddress:
 					x = ParseNonNegative(l);
