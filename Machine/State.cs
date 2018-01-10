@@ -14,6 +14,7 @@ namespace Machine
 		public int ac = 0;  //accumulator
 		public int pc = 0;  //program-counter
 		public int sp = 0;  //stack-pointer
+		public int spCeiling = 0;	//to calculate stack progression
 		public int[] m = new int[MemorySize];
 
 		public const int MemorySize = 0x10000;
@@ -32,7 +33,10 @@ namespace Machine
 		}
 		private void LogSP()
 		{
-			Log("sp := " + (sp != 0 ? sp - m.Length : 0)+"/"+sp);
+			int relative = spCeiling - sp;
+			if (relative < 0)
+				relative += m.Length;
+			Log("sp := " + (-relative) +"/"+sp);
 		}
 		private void LogM(int a)
 		{
@@ -151,6 +155,7 @@ namespace Machine
 			int tmp = ac;
 			ac = sp;
 			sp = tmp;
+			spCeiling = tmp;
 			LogAC();
 			LogSP();
 		}

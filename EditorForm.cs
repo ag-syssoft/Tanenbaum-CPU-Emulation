@@ -147,12 +147,44 @@ namespace Tanenbaum_CPU_Emulator
 
 		}
 
+		struct POINT
+		{
+			public int x;
+			public int y;
+		}
+		const int WM_USER = 0x0400;
+		const int EM_GETSCROLLPOS = WM_USER + 221;
+		const int EM_SETSCROLLPOS = WM_USER + 222;
+
+		int GetScrollPosition()
+		{
+			var ptr = Marshal.AllocHGlobal(Marshal.SizeOf(typeof(POINT)));
+			Marshal.StructureToPtr(new POINT(), ptr, false);
+			SendMessage(this.codeInputBox.Handle, EM_GETSCROLLPOS, false, (int)ptr);
+			var point = (POINT)Marshal.PtrToStructure(ptr, typeof(POINT));
+			Marshal.FreeHGlobal(ptr);
+			return point.y;
+		}
+
+		void SetScrollPosition(int y)
+		{
+			var ptr = Marshal.AllocHGlobal(Marshal.SizeOf(typeof(POINT)));
+			Marshal.StructureToPtr(new POINT() { x = 0, y = y }, ptr, false);
+			SendMessage(this.codeInputBox.Handle, EM_SETSCROLLPOS, false, (int)ptr);
+//			var point = (POINT)Marshal.PtrToStructure(ptr, typeof(POINT));
+			Marshal.FreeHGlobal(ptr);
+		}
+
+
 
 		private void ReColor()
 		{
 
 
 			SuspendDrawing(this);
+
+			int scrollPosition = GetScrollPosition();
+
 
 
 			var start = codeInputBox.SelectionStart;
@@ -253,6 +285,8 @@ namespace Tanenbaum_CPU_Emulator
 			}
 
 			codeInputBox.Select(start, len);
+			SetScrollPosition(scrollPosition);
+
 			ResumeDrawing(this);
 		}
 
