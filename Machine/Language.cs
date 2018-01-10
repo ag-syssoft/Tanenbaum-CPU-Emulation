@@ -463,7 +463,11 @@ namespace Machine
 				{
 					var l = new PreParsedLine(line);
 					if (l.Label.HasValue)
+					{
+						if (labels.ContainsKey( l.Label.Value))
+							throw new ArgumentException("Label '"+l.Label.Value+"' re-defined. Was originally defined at command #"+labels[l.Label.Value]);
 						labels.Add(l.Label.Value, commandCounter);
+					}
 					if (!l.IsEmpty)
 						commandCounter++;
 				}
