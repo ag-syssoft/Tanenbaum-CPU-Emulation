@@ -30,7 +30,7 @@ Commands are not case-sensitive, but the execution log will print them in upper 
 
 Jump commands (`JUMP, JNZE, JZER, JNEG, JNZE`) require the parameter to be a label, declared somewhere in the program. Labels are case-sensitive.
 Labels may be put before commands (e.g. `endless-loop: JUMP endless-loop`), or into their own lines. They may contain any non-whitespace characters, including numbers.
-Labels consisting only of numbers will always be interpreted as a label, however, not as an actual numeric program address.
+Labels consisting only of numbers will always be interpreted as arbitrary strings, however, not as an actual numeric program address.
 
 Address commands (`ADDD, SUBD, LODD, STOD`) accept address constants as well as special addresses *a0*=0x500 through *a10*=0x50A, and *one*=0x50B.
 The value at address *one* is preinitialized with the value 1, but may be changed during runtime.
