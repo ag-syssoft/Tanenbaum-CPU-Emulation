@@ -8,6 +8,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using Machine;
 
 namespace Tanenbaum_CPU_Emulator
 {
@@ -89,6 +90,7 @@ namespace Tanenbaum_CPU_Emulator
 		static Font commandFont = new Font("Consolas", 10, FontStyle.Bold);
 		static Font defaultFont = new Font("Consolas", 10, FontStyle.Regular);
 		static Font commentFont = new Font("Consolas", 10, FontStyle.Italic);
+		static Font labelFont = new Font("Consolas", 10, FontStyle.Bold);
 		static Font errorFont = new Font("Consolas", 10, FontStyle.Bold | FontStyle.Underline);
 
 		[DllImport("user32.dll")]
@@ -127,14 +129,17 @@ namespace Tanenbaum_CPU_Emulator
 				try
 				{
 					var l = new Machine.Language.PreParsedLine(new Machine.Language.ParsedSegment(line));
-
+					bool parameterIsLabel = false;
 					if (l.Command.HasValue)
 					{
-						codeInputBox.Select(at + l.Command.Start, l.Command.Length);
+						Select(at, l.Command);
 						try
 						{
 							if (l.Command != "END")
-								Machine.Language.FindCommand(l.Command.Value, l.Parameter.HasValue);	//trigger exceptions (if any)
+							{
+								var cmd = Language.FindCommand(l.Command.Value, l.Parameter.HasValue);  //trigger exceptions (if any)
+								parameterIsLabel = cmd.WantsLabel;
+							}
 							codeInputBox.SelectionFont = commandFont;
 							codeInputBox.SelectionColor = Color.Blue;
 						}
@@ -148,7 +153,7 @@ namespace Tanenbaum_CPU_Emulator
 							codeInputBox.SelectionFont = commandFont;
 							codeInputBox.SelectionColor = Color.Blue;
 
-							codeInputBox.Select(at + l.Parameter.Start, l.Parameter.Length);
+							Select(at,l.Parameter);
 							codeInputBox.SelectionFont = errorFont;
 							codeInputBox.SelectionColor = Color.Maroon;
 						}
@@ -159,9 +164,40 @@ namespace Tanenbaum_CPU_Emulator
 						}
 					}
 
+					if (l.Label.HasValue)
+					{
+						Select(at,l.Label);
+						codeInputBox.SelectionFont = labelFont;
+						codeInputBox.SelectionColor = Color.Black;
+					}
+
+					if (l.Parameter.HasValue)
+					{
+						Select(at, l.Parameter);
+						if (!parameterIsLabel)
+						{
+							int x = 0;
+							if (!int.TryParse(l.Parameter.Value, out x))
+							{
+								codeInputBox.SelectionFont = errorFont;
+								codeInputBox.SelectionColor = Color.Maroon;
+							}
+							else
+							{
+								//codeInputBox.SelectionFont = labelFont;
+								codeInputBox.SelectionColor = Color.FromArgb(0xb0, 0x60, 0);
+							}
+						}
+						else
+						{
+							codeInputBox.SelectionFont = labelFont;
+							codeInputBox.SelectionColor = Color.Black;
+						}
+					}
+
 					if (l.Comment.HasValue)
 					{
-						codeInputBox.Select(at + l.Comment.Start, l.Comment.Length);
+						Select(at,l.Comment);
 						codeInputBox.SelectionFont = commentFont;
 						codeInputBox.SelectionColor = Color.DarkGreen;
 					}
@@ -182,7 +218,17 @@ namespace Tanenbaum_CPU_Emulator
 			ResumeDrawing(this);
 		}
 
+		private void Select(int offset, Language.ParsedSegment seg)
+		{
+			codeInputBox.Select(offset + seg.Start, seg.Length);
+		}
+
 		private void codeInputBox_TextChanged(object sender, EventArgs e)
+		{
+			ReColor();
+		}
+
+		private void EditorForm_Shown(object sender, EventArgs e)
 		{
 			ReColor();
 		}

@@ -69,7 +69,7 @@
 			this.codeInputBox.Name = "codeInputBox";
 			this.codeInputBox.Size = new System.Drawing.Size(801, 589);
 			this.codeInputBox.TabIndex = 6;
-			this.codeInputBox.Text = "";
+			this.codeInputBox.Text = "//loop 10 times:\nloco 1\nstod 1\nloco 10\n\nloop:\nsubd 1\njnze loop\n\nend";
 			this.codeInputBox.TextChanged += new System.EventHandler(this.codeInputBox_TextChanged);
 			// 
 			// EditorForm
@@ -82,6 +82,7 @@
 			this.MainMenuStrip = this.menuStrip1;
 			this.Name = "EditorForm";
 			this.Text = "Tanenbaum CPU Emulator - Code";
+			this.Shown += new System.EventHandler(this.EditorForm_Shown);
 			this.menuStrip1.ResumeLayout(false);
 			this.menuStrip1.PerformLayout();
 			this.ResumeLayout(false);
