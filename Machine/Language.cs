@@ -399,6 +399,9 @@ namespace Machine
 				throw new ArgumentException("Unable to parse parameter '" + l.Parameter + "' of line '" + l.InputLine + "'");
 			if (x < 0)
 				throw new ArgumentException("Parameter '" + l.Parameter + "' of line '" + l.InputLine + "' must not be negative");
+			if (x >= State.MemorySize)
+				throw new ArgumentException("Parameter '" + l.Parameter + "' of line '" + l.InputLine + "' must be less than the address space size "+ State.MemorySize);
+
 			return x;
 		}
 
