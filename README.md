@@ -33,7 +33,7 @@ A documentation of all instructions may be found at [stvincent.edu](http://cis.s
 
 Jump commands (`JUMP, JNZE, JZER, JNEG, JNZE`) require the parameter to be a label, declared somewhere in the program. Labels are case-sensitive. Labels may be put before commands (e.g. `endless-loop: JUMP endless-loop`), or into their own lines. They may contain any non-whitespace characters, including numbers. Labels consisting only of numbers will always be interpreted as names, however, not as actual numeric program addresses.
 
-Address commands (`ADDD, SUBD, LODD, STOD`) accept address constants in the range [0,9999] in addition to named addresses *a0*=1280 through *a10*=1290, and *one*=1291.
+Address commands (`ADDD, SUBD, LODD, STOD`) require either numeric parameters in the range [0,9999] or any named address (`*a0*=1280 through *a10*=1290, and *one*=1291`).
 The value at address *one* is preinitialized with the value 1, but may be changed during runtime.
 Numeric parameters must be specified as decimal numbers.
 
