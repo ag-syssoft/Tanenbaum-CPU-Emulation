@@ -41,7 +41,10 @@ namespace Console_Emulator
 				Console.Error.WriteLine(ex.Message);
 			}
 			if (exec != null)
+			{
 				Console.WriteLine("Program ended after " + exec.InstructionCounter + " instruction(s)");
+				Console.WriteLine("SP=" + exec.State.sp + ", AC="+exec.State.ac);
+			}
 
 		}
 	}

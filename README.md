@@ -1,6 +1,7 @@
 # Tanenbaum Mac-1 Instruction Set Simulator
 
 This project is aimed at familiarizing students with the concept of assembler style programming.
+It is written in C#.
 
 
 ## Differences to the original
@@ -13,12 +14,14 @@ The code can therefor neither be read nor modified by the program itself, and th
 
 ## Visual Editor/Simulator
 The visual application can be executed using the `Tanenbaum CPU Emulator.exe` executable, or by compiling and running the `Tanenbaum CPU Emulator` project.
+Mono has proven capable of running this .exe file on non-Windows systems, but may depict visual or behavioral glitches.
 It allows editing syntax highlighted programs, and running them.
 Actual execution is handled by a timer, and endless loops should never freeze the application, however the log may grow very large.
 It may be paused at any time.
 
 ## Console Based Simulator
 This console based simulator can be executed using the `trun.exe` executable, or by compiling and running the `Console Emulator` project.
+Mono has proven capable of running this .exe file on non-Windows systems without noticeable glitches.
 It requires a path to a text file as parameter, which contains the program to execute.
 If the provided program produces an endless loop, the application will endlessly flood the console with updates at maximum speed until terminated via Ctrl+C.
 
