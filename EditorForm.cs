@@ -349,16 +349,20 @@ namespace Tanenbaum_CPU_Emulator
 				switch (e.KeyCode)
 				{
 					case Keys.C:
-						Clipboard.SetText(codeInputBox.Text);
+						Clipboard.SetText(codeInputBox.SelectedText);
 						e.Handled = true;
 						break;
 					case Keys.X:
-						Clipboard.SetText(codeInputBox.Text);
-						codeInputBox.Text = "";
+						Clipboard.SetText(codeInputBox.SelectedText);
+						codeInputBox.Text = codeInputBox.Text.Remove(codeInputBox.SelectionStart,codeInputBox.SelectionLength);
 						e.Handled = true;
 						break;
 					case Keys.V:
-						codeInputBox.Text = Clipboard.GetText();
+						string copy = codeInputBox.Text;
+						copy = copy.Remove(codeInputBox.SelectionStart, codeInputBox.SelectionLength);
+						copy = copy.Insert(codeInputBox.SelectionStart, Clipboard.GetText());
+						codeInputBox.SelectionLength = 0;
+						codeInputBox.Text = copy;
 						e.Handled = true;
 						break;
 					case Keys.A:
