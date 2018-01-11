@@ -176,17 +176,37 @@ namespace Tanenbaum_CPU_Emulator
 			Marshal.FreeHGlobal(ptr);
 		}
 
+		int changeDepth = 0;
+		int scrollPosition = 0;
+
+		void Begin()
+		{
+			if (changeDepth == 0)
+			{
+				ignoreChange = true;
+				SuspendDrawing(codeInputBox);
+				scrollPosition = GetScrollPosition();
+			}
+			changeDepth++;
+		}
+
+		void End()
+		{
+			changeDepth--;
+			if (changeDepth == 0)
+			{
+				ignoreChange = false;
+				SetScrollPosition(scrollPosition);
+				ResumeDrawing(codeInputBox);
+			}
+		}
 
 
 		private void ReColor()
 		{
 
-
-			SuspendDrawing(this);
-
-			int scrollPosition = GetScrollPosition();
-
-
+			statusLabel.Text = "";
+			Begin();
 
 			var start = codeInputBox.SelectionStart;
 			var len = codeInputBox.SelectionLength;
@@ -244,19 +264,22 @@ namespace Tanenbaum_CPU_Emulator
 							parameterType = cmd.Parameter;
 							Apply(commandStyle);
 						}
-						catch (Machine.CommandRequiresParameterException)
+						catch (Machine.CommandRequiresParameterException ex)
 						{
 							Apply(commandLacksParameterStyle);
+							statusLabel.Text = ex.Message;
 						}
-						catch (Machine.CommandDoesNotSupportParameterException)
+						catch (Machine.CommandDoesNotSupportParameterException ex)
 						{
 							Apply(commandStyle);
 
 							Select(at,l.Parameter); Apply(errorStyle);
+							statusLabel.Text = ex.Message;
 						}
-						catch
+						catch (Exception ex)
 						{
 							Apply(errorStyle);
+							statusLabel.Text = ex.Message;
 						}
 					}
 
@@ -291,9 +314,10 @@ namespace Tanenbaum_CPU_Emulator
 									break;
 							}
 						}
-						catch
+						catch (Exception ex)
 						{
 							Apply(errorStyle);
+							statusLabel.Text = ex.Message;
 						}
 					}
 
@@ -315,9 +339,7 @@ namespace Tanenbaum_CPU_Emulator
 			}
 
 			codeInputBox.Select(start, len);
-			SetScrollPosition(scrollPosition);
-
-			ResumeDrawing(this);
+			End();
 		}
 
 		private void Apply(Style style)
@@ -342,10 +364,134 @@ namespace Tanenbaum_CPU_Emulator
 
 
 
-		List<string> back = new List<string>();
-		List<string> fore = new List<string>();
+		List<Tuple<string,int>> back = new List<Tuple<string, int>>();
+		List<Tuple<string, int>> fore = new List<Tuple<string, int>>();
 		bool ignoreChange = false;
+
+
+		private void codeInputBox_KeyDown(object sender, KeyEventArgs e)
+		{
+
+			var box = codeInputBox;
+			int line = box.GetLineFromCharIndex(box.SelectionStart);
+			int lineStart = box.GetFirstCharIndexOfCurrentLine();
+			bool suppress = false;
+			switch (e.KeyData)
+			{
+				case Keys.PageUp:
+					suppress = line == 0;
+					break;
+				case Keys.PageDown:
+					suppress = line+1 == box.Lines.Length;
+					break;
+				case Keys.End:
+					suppress = box.SelectionStart - lineStart == box.Lines[line].Length;
+					break;
+				case Keys.Home:
+					suppress = box.SelectionStart == lineStart;
+					break;
+				case Keys.Up:
+					suppress = line == 0;
+					break;
+				case Keys.Down:
+					suppress = line + 1 == box.Lines.Length;
+					break;
+				case Keys.Left:
+					suppress = box.SelectionStart == 0;
+					break;
+				case Keys.Right:
+					suppress = box.SelectionStart == box.TextLength;
+					break;
+			}
+			if (suppress)
+			{
+				e.SuppressKeyPress = true;
+				e.Handled = true;
+				if (!e.Shift)
+					box.SelectionLength = 0;
+				return;
+			}
+
+			//statusLabel.Text = e.KeyCode.ToString() + " ("+e.Control+")";
+
+			
+			if (e.Control)
+			{
+				var sel = GetSelected();
+				switch (e.KeyCode)
+				{
+					//case Keys.C:
+					//	string copy = codeInputBox.SelectedText;
+					//	if (copy.EndsWith("\\n"))
+					//		copy = copy.Substring(0, copy.Length - 1);
+					//	Clipboard.SetText(copy);
+					//	e.Handled = true;
+					//	statusLabel.Text = "Copied '" + copy.Substring(0, 16) + "'";
+					//	break;
+					//case Keys.X:
+					//	Clipboard.SetText(codeInputBox.SelectedText);
+					//	codeInputBox.Text = codeInputBox.Text.Remove(codeInputBox.SelectionStart, codeInputBox.SelectionLength);
+					//	e.Handled = true;
+					//	break;
+					//case Keys.V:
+					//	string copy = codeInputBox.Text;
+					//	copy = copy.Remove(codeInputBox.SelectionStart, codeInputBox.SelectionLength);
+					//	copy = copy.Insert(codeInputBox.SelectionStart, Clipboard.GetText());
+					//	codeInputBox.SelectionLength = 0;
+					//	codeInputBox.Text = copy;
+					//	codeInputBox.SelectionStart = sel.start + Clipboard.GetText().Length;
+					//	e.Handled = true;
+					//	break;
+					//case Keys.A:
+					//	codeInputBox.SelectAll();
+					//	e.Handled = true;
+					//	break;
+					case Keys.Z:
+						{
+							if (back.Count > 0)
+							{
+								Begin();
+									var rec = back[back.Count - 1];
+									back.RemoveAt(back.Count - 1);
+									fore.Add(new Tuple<string, int>(box.Text, box.SelectionStart));
+									box.Text = rec.Item1;
+									box.SelectionStart = rec.Item2;
+									box.SelectionLength = 0;
+								End();
+								codeInputBox.ScrollToCaret();
+								statusLabel.Text = "Undone. "+back.Count+" action(s) left to undo, "+fore.Count+" action(s) left to redo";
+							}
+							else
+								statusLabel.Text = "Nothing recorded to undo";
+							e.Handled = true;
+						}
+						break;
+					case Keys.Y:
+						{
+							if (fore.Count > 0)
+							{
+								Begin();
+									var rec = fore[fore.Count - 1];
+									fore.RemoveAt(fore.Count - 1);
+									back.Add(new Tuple<string, int>(box.Text, box.SelectionStart));
+									codeInputBox.Text = rec.Item1;
+									box.SelectionStart = rec.Item2;
+									box.SelectionLength = 0;
+								End();
+								codeInputBox.ScrollToCaret();
+								statusLabel.Text = "Redone. " + back.Count + " action(s) left to undo, " + fore.Count + " action(s) left to redo";
+							}
+							else
+								statusLabel.Text = "Nothing recorded to redo";
+							e.Handled = true;
+						}
+						break;
+				}
+			}
+		}
+
 		string lastText = null;
+		int lastCuror = 0;
 
 		private void codeInputBox_TextChanged(object sender, EventArgs e)
 		{
@@ -354,7 +500,7 @@ namespace Tanenbaum_CPU_Emulator
 			{
 				fore.Clear();
 				if (lastText != null)
-					back.Add(lastText);
+					back.Add(new Tuple<string, int>( lastText, codeInputBox.SelectionStart));
 				if (back.Count > 1024)
 					back.RemoveRange(0, 64);//bulk
 			}
@@ -373,64 +519,7 @@ namespace Tanenbaum_CPU_Emulator
 
 		private void codeInputBox_KeyUp(object sender, KeyEventArgs e)
 		{
-			if (e.Control)
-			{
-				var sel = GetSelected();
-				switch (e.KeyCode)
-				{
-					case Keys.C:
-						Clipboard.SetText(codeInputBox.SelectedText);
-						e.Handled = true;
-						break;
-					case Keys.X:
-						Clipboard.SetText(codeInputBox.SelectedText);
-						codeInputBox.Text = codeInputBox.Text.Remove(codeInputBox.SelectionStart,codeInputBox.SelectionLength);
-						e.Handled = true;
-						break;
-					case Keys.V:
-						string copy = codeInputBox.Text;
-						copy = copy.Remove(codeInputBox.SelectionStart, codeInputBox.SelectionLength);
-						copy = copy.Insert(codeInputBox.SelectionStart, Clipboard.GetText());
-						codeInputBox.SelectionLength = 0;
-						codeInputBox.Text = copy;
-						e.Handled = true;
-						break;
-					case Keys.A:
-						codeInputBox.SelectAll();
-						e.Handled = true;
-						break;
-					case Keys.Z:
-						{
-							if (back.Count > 0)
-							{
-								ignoreChange = true;
-								string text = back[back.Count - 1];
-								back.RemoveAt(back.Count - 1);
-								fore.Add(codeInputBox.Text);
-								codeInputBox.Text = text;
-								Select(sel);
-								ignoreChange = false;
-							}
-							e.Handled = true;
-						}
-						break;
-					case Keys.Y:
-						{
-							if (fore.Count > 0)
-							{
-								ignoreChange = true;
-								string text = fore[fore.Count - 1];
-								fore.RemoveAt(fore.Count - 1);
-								back.Add(codeInputBox.Text);
-								codeInputBox.Text = text;
-								Select(sel);
-								ignoreChange = false;
-							}
-							e.Handled = true;
-						}
-						break;
-				}
-			}
+			var box = codeInputBox;
 		}
 	}
 
