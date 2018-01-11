@@ -36,7 +36,7 @@ namespace Machine
 				relative += m.Length;
 			Log("sp := " + (-relative) +"/"+sp);
 		}
-		private void LogM(int a)
+		public void LogM(int a)
 		{
 			Log("m[" + a + "] := " + m[a]);
 		}

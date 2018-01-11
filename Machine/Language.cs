@@ -583,7 +583,7 @@ namespace Machine
 			foreach (var alias in aliases.Values)
 			{
 				if (alias.InitialValue.HasValue)
-					instructions.Add(new Instruction(s => s.m[alias.Address] = alias.InitialValue.Value, alias.ToString()));
+					instructions.Add(new Instruction(s => { s.m[alias.Address] = alias.InitialValue.Value; s.LogM(alias.Address); }, alias.ToString()));
 			}
 
 			lineIndex = 0;
