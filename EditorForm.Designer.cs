@@ -71,7 +71,7 @@
 			this.codeInputBox.ShortcutsEnabled = false;
 			this.codeInputBox.Size = new System.Drawing.Size(801, 589);
 			this.codeInputBox.TabIndex = 6;
-			this.codeInputBox.Text = "//loop 10 times:\nloco 10\n\nloop:\nsubd one\njnze loop\n\nhalt\n";
+			this.codeInputBox.Text = "#alias one @1024 =1\n\n//loop 10 times:\nloco 10\n\nloop:\nsubd one\njnze loop\n\nhalt\n";
 			this.codeInputBox.TextChanged += new System.EventHandler(this.codeInputBox_TextChanged);
 			this.codeInputBox.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.codeInputBox_KeyPress);
 			this.codeInputBox.KeyUp += new System.Windows.Forms.KeyEventHandler(this.codeInputBox_KeyUp);

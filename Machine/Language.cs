@@ -168,21 +168,6 @@ namespace Machine
 		}
 
 
-		public enum SpecialAddress
-		{
-			a0 = 0x500,
-			a1 = 0x501,
-			a2 = 0x502,
-			a3 = 0x503,
-			a4 = 0x504,
-			a5 = 0x505,
-			a6 = 0x506,
-			a7 = 0x507,
-			a8 = 0x508,
-			a9 = 0x509,
-			a10 = 0x50a,
-			one = 0x50b,
-		}
 
 
 
@@ -298,22 +283,29 @@ namespace Machine
 				return new ParsedSegment(this, start);
 			}
 
-			public ParsedSegment[] SplitWhitespace()
+			public ParsedSegment[] Split(Func<char, bool> isSeparator, Func<char,bool> includeSeparators)
 			{
 				List<ParsedSegment> segs = new List<ParsedSegment>();
 				int from = 0;
 				for (int i = 0; i < Length; i++)
 				{
-					if (Char.IsWhiteSpace(Value[i]))
+					if (isSeparator(Value[i]))
 					{
 						if (from != i)
 							segs.Add(Substring(from, i - from));
+						if (includeSeparators != null && includeSeparators(Value[i]))
+							segs.Add(Substring(i,1));
 						from = i + 1;
 					}
 				}
 				if (from != Length)
 					segs.Add(Substring(from));
 				return segs.ToArray();
+			}
+
+			public ParsedSegment[] SplitWhitespace()
+			{
+				return Split(Char.IsWhiteSpace, null);
 			}
 
 			public ParsedSegment ToUpper()
@@ -330,18 +322,60 @@ namespace Machine
 			}
 		}
 
+		public struct Alias
+		{
+			public readonly string Name;
+			public readonly int Address;
+			public readonly int? InitialValue;
+
+			public Alias(string name, int address)
+			{
+				Name = name;
+				Address = address;
+				InitialValue = null;
+			}
+
+			public Alias(string name, int address, int? value)
+			{
+				Name = name;
+				Address = address;
+				InitialValue = value;
+			}
+
+			public override string ToString()
+			{
+				return "#alias " + Name + " @" + Address + (InitialValue.HasValue ?" ="+ InitialValue : "");
+			}
+
+		}
+
 		public struct PreParsedLine
 		{
 			public readonly string InputLine;
 			public readonly ParsedSegment Comment;
 			public readonly ParsedSegment Label;
-			public readonly ParsedSegment Command, Parameter;
+			public readonly ParsedSegment Command, Parameter, AliasName, AliasAddress, AliasValue;
+			public readonly int IntAliasAddress;
+			public readonly int? IntAliasValue;
 
-			public bool IsEmpty
+			public Alias ToAlias()
+			{
+				return new Alias(AliasName.Value, IntAliasAddress, IntAliasValue);
+			}
+
+			public bool IsAlias
 			{
 				get
 				{
-					return Command.IsEmpty;
+					return !AliasName.IsEmpty;
+				}
+			}
+
+			public bool IsCommand
+			{
+				get
+				{
+					return !Command.IsEmpty;
 				}
 			}
 
@@ -349,30 +383,85 @@ namespace Machine
 			{
 				InputLine = input;
 				ParsedSegment source = new ParsedSegment(input);
-				int c0 = source.IndexOf("//");
-				int c1 = source.IndexOf(";");
-				if (c0 < 0)
-					c0 = int.MaxValue;
-				if (c1 < 0)
-					c1 = int.MaxValue;
-				int commentAt = Math.Min(c0, c1);
-
-				
-
-				if (commentAt < int.MaxValue)
 				{
-					Comment = new ParsedSegment(source, commentAt);
-					source = source.Substring(0, commentAt);
+					int c0 = source.IndexOf("//");
+					int c1 = source.IndexOf(";");
+					if (c0 < 0)
+						c0 = int.MaxValue;
+					if (c1 < 0)
+						c1 = int.MaxValue;
+					int commentAt = Math.Min(c0, c1);
+
+
+
+					if (commentAt < int.MaxValue)
+					{
+						Comment = new ParsedSegment(source, commentAt);
+						source = source.Substring(0, commentAt);
+					}
 				}
+
+
+
 				source = source.Trim();
 				if (source.Length == 0)
 					return;
-				int colon = source.IndexOf(":");
-				if (colon >= 0)
 				{
-					Label = source.Substring(0, colon).Trim();
-					source = source.Substring(colon + 1).Trim();
+					int colon = source.IndexOf(":");
+					if (colon >= 0)
+					{
+						Label = source.Substring(0, colon).Trim();
+						source = source.Substring(colon + 1).Trim();
+					}
 				}
+
+				if (source.Length == 0)
+					return;
+				{
+					int hash = source.IndexOf("#");
+					if (hash != -1)
+					{
+						//#alias <name> @<address> [=<value>]
+
+						var elements = source.Substring(hash + 1).Split(c => c == '@' || c == '=' || Char.IsWhiteSpace(c), c => c == '@' || c == '=');
+
+						if (elements.Length < 1)
+							throw new ArgumentException("Expected precompiler instruction");
+
+						if (elements[0] != "alias")
+							throw new ArgumentException("#alias expected");
+						if (elements.Length < 2)
+							throw new ArgumentException("#alias <name> @<address> [=<value>]: Name expected");
+						AliasName = elements[1];
+						if (elements.Length < 3 || elements[2] != "@")
+							throw new ArgumentException("#alias <name> @<address> [=<value>]: @ expected");
+						if (elements.Length < 4)
+							throw new ArgumentException("#alias <name> @<address> [=<value>]: Address expected");
+						AliasAddress = elements[3];
+						if (!int.TryParse(AliasAddress.Value, out IntAliasAddress))
+							throw new ArgumentException("#alias <name> @<address> [=<value>]: Unable to parse address value '" + AliasAddress.Value + "'");
+						if (IntAliasAddress < 0 || IntAliasAddress >= State.MemorySize)
+							throw new ArgumentException("#alias <name> @<address> [=<value>]: Address value '" + IntAliasAddress + "' exceeds valid range");
+						if (elements.Length > 4)
+						{
+							if (elements[4] != "=")
+								throw new ArgumentException("#alias <name> @<address> [=<value>]: = expected");
+							if (elements.Length < 6)
+								throw new ArgumentException("#alias <name> @<address> [=<value>]: Value expected");
+							AliasValue = elements[5];
+
+							int x;
+							if (!int.TryParse(AliasValue.Value, out x))
+								throw new ArgumentException("#alias <name> @<address> [=<value>]: Unable to parse value '" + AliasValue.Value + "'");
+							IntAliasValue = x;
+						}
+						return;
+					}
+				}
+
+
+
+
 				var parts = source.SplitWhitespace();
 				if (parts.Length > 0)
 					Command = parts[0].ToUpper();
@@ -390,7 +479,7 @@ namespace Machine
 			StackDelta,
 			Address,
 			Label,
-			SpecialAddress,
+			Alias,
 		}
 
 		private static int ParseNonNegative(PreParsedLine l)
@@ -406,7 +495,7 @@ namespace Machine
 			return x;
 		}
 
-		public static int ParseParameter(Command.ParameterType t, PreParsedLine l,  out ParsedType foundType,  Dictionary<string, int> labels = null)
+		public static int ParseParameter(Command.ParameterType t, PreParsedLine l,  out ParsedType foundType,  Dictionary<string,Alias> aliases, Dictionary<string, int> labels = null)
 		{
 			int x = 0;
 			foundType = ParsedType.Constant;
@@ -433,17 +522,17 @@ namespace Machine
 					foundType = ParsedType.Address;
 					if (!int.TryParse(l.Parameter.Value, out x))
 					{
-						SpecialAddress addr;
-						if (Enum.TryParse(l.Parameter.Value, out addr))
+						Alias alias;
+						if (aliases.TryGetValue(l.Parameter.Value, out alias))
 						{
-							x = (int)addr;
-							foundType = ParsedType.SpecialAddress;
+							x = alias.Address;
+							foundType = ParsedType.Alias;
 						}
 						else
-							throw new ArgumentException("Unable to parse parameter '" + l.Parameter + "' of line '" + l.InputLine + "'");
+							throw new ArgumentException("Unable to parse address parameter '" + l.Parameter + "' of line '" + l.InputLine + "'. Parameter is no valid integer, or known alias");
 					}
-					if (x < 0)
-						throw new ArgumentException("Parameter '" + l.Parameter + "' of line '" + l.InputLine + "' must not be negative");
+					if (x < 0 || x >= State.MemorySize)
+						throw new ArgumentException("Address parameter '" + l.Parameter + "' of line '" + l.InputLine + "' exceeds valid address range");
 					break;
 			}
 			return x;
@@ -457,6 +546,8 @@ namespace Machine
 			lineIndex = 0;
 			int commandCounter = 0;
 
+			Dictionary<string, Alias> aliases = new Dictionary<string, Alias>();
+
 			foreach (var line in lines)
 			{
 				lineIndex++;
@@ -469,7 +560,18 @@ namespace Machine
 							throw new ArgumentException("Label '"+l.Label.Value+"' re-defined. Was originally defined at command #"+labels[l.Label.Value]);
 						labels.Add(l.Label.Value, commandCounter);
 					}
-					if (!l.IsEmpty)
+					if (l.IsAlias)
+					{
+						var alias = l.ToAlias();
+						if (aliases.ContainsKey(alias.Name))
+							throw new ArgumentException("Alias '" + alias.Name + "' already defined");
+						aliases.Add(alias.Name, alias);
+
+						if (l.IntAliasValue.HasValue)
+							commandCounter ++;	//set
+					}
+
+					if (l.IsCommand)
 						commandCounter++;
 				}
 				catch (Exception ex)
@@ -478,13 +580,18 @@ namespace Machine
 				}
 			}
 
+			foreach (var alias in aliases.Values)
+			{
+				if (alias.InitialValue.HasValue)
+					instructions.Add(new Instruction(s => s.m[alias.Address] = alias.InitialValue.Value, alias.ToString()));
+			}
 
 			lineIndex = 0;
 			foreach (var line in lines)
 			{
 				lineIndex++;
 				var l = new PreParsedLine(line);
-				if (l.IsEmpty)
+				if (!l.IsCommand)
 					continue;
 
 				Action<State> action = null;
@@ -509,9 +616,10 @@ namespace Machine
 				if (command.RequiresParameter)
 				{
 					ParsedType ignore;
-					int x = ParseParameter(command.Parameter, l, out ignore, labels);
+					int x = ParseParameter(command.Parameter, l, out ignore, aliases,labels);
 					action = (s) => command.Action(s, x);
-					lineText += command.Name + " " + l.Parameter;
+					lineText += command.Name + " " +
+						"" + l.Parameter;
 				}
 				else
 				{

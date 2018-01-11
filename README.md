@@ -25,7 +25,7 @@ If the provided program produces an endless loop, the application will endlessly
 ## Language
 Commands are specified, one per line, in the form:\
 `[label:] [command [parameter]] [;comment]`\
-Alternatively, comments may also start with `//`.\
+Comments may also start with `//`.\
 Commands are not case-sensitive, but the execution log will print them in upper case. They may be indented using any number of white space characters.
 
 All commands behave as defined in *Tanenbaum, A. (1990) "Structured Computer Organisation.", Prentice Hall, 3rd edition*.
@@ -36,21 +36,27 @@ Labels are case-sensitive names that may contain any non-whitespace characters.
 They may be put before commands (e.g. `endless-loop: JUMP endless-loop`), or appear on their own, in which case they point to the first following command (if any).
 Numeric labels are always interpreted as names, not as explicit program addresses.
 
-Address commands (`ADDD, SUBD, LODD, STOD`) require either numeric parameters in the range [0,9999] or any named address (*a0*=1280 through *a10*=1290, and *one*=1291).
-The value at address *one* is preinitialized with the value 1, but may be changed during runtime.
+Address commands (`ADDD, SUBD, LODD, STOD`) require either numeric parameters in the range [0,9999] or any defined alias.
 Numeric parameters must be specified as decimal numbers.
 
-## Execution
-All memory is initialized to 0, with the exception of the value at the special address *one* (which is set to 1).
+### Aliases
+Aliases are declared, one per line, in the form:\
+`#alias name @address [=value]`\
+Aliases may be declared anywhere in the code, and referenced by name by any address command.
+Alias names are case-sensitive, and may contain any non-whitespace characters (purely numeric aliases are not recognized by commands, however).
+If an optional initial *value* is specified, then the value at the specified address is initialized to that value prior to executing the first regular instruction, regardless of where the alias is declared in the code.
+The same address may be referenced by multiple aliases, but their order of value initialization is undefined, if specified differently.
 
-The stack pointer is initialized to 0, but may be changed arbitrarily using the SWAP command.
-If it reaches either extreme of the available address space, it will wrap around to the opposing extreme.
+## Execution
+All memory is initialized to 0, including the stack pointer, program counter, and accumulator.
+
+If the stack pointer reaches either extreme of the available address space during execution, it will wrap around to the opposite extreme.
 The simulation keeps track of the initial stack value (0 unless SWAP is executed), and allows to display the stack pointer relative to this initial value.
 Under regular circumstances the relative stack pointer position represents the negative stack fill level.
 
-Execution starts with the top-most instruction specified in the program, and continues until the program either exits beyond the bottom most instruction,
-or executes the HALT command.
+Execution starts with the top-most instruction specified in the program, and continues until the program either exits beyond the bottom most instruction, or executes the HALT command.
 It may also terminate unintentionally if access violations occur (e.g. by trying to read/write addresses beyond 9999).
+If any aliases are declared with initial values, then these initializations are executed before the first regular program instruction, regardless of where they were defined in the code.
 
 During execution, each command logs the current program counter, executed instruction text, and any detected changes.
 The stack pointer, if changed, is logged with both its negative relative and absolute address (`sp := [relative]/[absolute]`, e.g. *sp := -5/9995*).

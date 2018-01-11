@@ -115,7 +115,8 @@ namespace Tanenbaum_CPU_Emulator
 		static Font defaultFont = new Font("Consolas", 10, FontStyle.Regular);
 		static Style commentStyle = new Style( FontStyle.Italic, Color.DarkGreen);
 		static Style labelStyle = new Style(FontStyle.Bold, Color.Black);
-		static Style specialAddressStyle =  new Style(FontStyle.Bold|FontStyle.Italic, Color.FromArgb(0x90, 0, 0x50));
+		static Style aliasStyle =  new Style(FontStyle.Bold|FontStyle.Italic, Color.FromArgb(0x90, 0, 0x50)),
+					aliasDeclarationStyle = new Style(FontStyle.Regular, Color.FromArgb(0x90, 0, 0x50));
 		static Style errorStyle = new Style(FontStyle.Bold | FontStyle.Underline, Color.Maroon);
 
 		[DllImport("user32.dll")]
@@ -198,7 +199,36 @@ namespace Tanenbaum_CPU_Emulator
 				tabs[i] = 28 * i;
 			codeInputBox.SelectionTabs = tabs;
 
+			Dictionary<string, Language.Alias> aliases = new Dictionary<string, Language.Alias>();
 			int at = 0;
+			foreach (var line in codeInputBox.Lines)
+			{
+				try
+				{
+					var l = new Language.PreParsedLine(line);
+					if (l.IsAlias)
+					{
+						if (aliases.ContainsKey(l.AliasName.Value))
+						{
+							codeInputBox.Select(at, line.Length);
+							Apply(errorStyle);
+						}
+						else
+						{
+							aliases.Add(l.AliasName.Value, l.ToAlias());
+							codeInputBox.Select(at, line.Length);
+							Apply(aliasDeclarationStyle);
+							Select(at, l.AliasName);
+							Apply(aliasStyle);
+						}
+					}
+				}
+				catch
+				{ }
+				at += line.Length + 1;
+			}
+
+			at = 0;
 			foreach (var line in codeInputBox.Lines)
 			{
 				try
@@ -241,7 +271,7 @@ namespace Tanenbaum_CPU_Emulator
 						try
 						{
 							Language.ParsedType t;
-							Language.ParseParameter(parameterType, l, out t);
+							Language.ParseParameter(parameterType, l, out t,aliases);
 							switch (t)
 							{
 								case Language.ParsedType.Constant:
@@ -256,8 +286,8 @@ namespace Tanenbaum_CPU_Emulator
 								case Language.ParsedType.Label:
 									Apply(labelStyle);
 									break;
-								case Language.ParsedType.SpecialAddress:
-									Apply(specialAddressStyle);
+								case Language.ParsedType.Alias:
+									Apply(aliasStyle);
 									break;
 							}
 						}
