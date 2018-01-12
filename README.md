@@ -39,7 +39,9 @@ Lines may be indented using any number of whitespace characters. Likewise, any s
 Instructions are specified in the form:\
 `instruction [parameter]`\
 The character case of instructions is ignored (`SUBL` is the same as `subl`, `Subl`, or `sUbL`).
+Numeric parameters must be specified as decimal numbers.
 Only some instructions require parameters.
+
 
 All regular instructions behave as defined in *Tanenbaum, A. (1990) "Structured Computer Organisation.", Prentice Hall, 3rd edition*.
 Documentations may be found at [stvincent.edu](http://cis.stvincent.edu/carlsond/cs330/mic1/mic1doc.txt) (English), or [syssoft.blog](https://ca.syssoft.blog/wp-content/uploads/2018/01/2017W-CA06-Tanenbaum-CPU.pdf) (German).
@@ -64,8 +66,8 @@ Aliases are declared, one per line, in the form:\
 `#alias name @address [=value]`\
 Aliases may be declared anywhere in the code, and optionally referenced by name by any direct address instruction (`ADDD, SUBD, LODD, STOD`).
 The given names are unique and case-sensitive, and may contain any non-whitespace characters. Purely numeric names (e.g. 1234), however, are not valid.
-If an optional initial *value* is specified, then the specified memory address is initialized to that value prior to executing the first regular instruction, regardless of where the alias is declared in the code.
-The same address may be referenced by multiple aliases, but their order of value initialization is undefined, if specified differently.
+Both the address and optional initial value must be specified as decimal numbers.
+The same address may be referenced by multiple aliases, but their order of value initialization is undefined if divergent.
 
 
 
