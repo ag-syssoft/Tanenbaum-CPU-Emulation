@@ -391,7 +391,7 @@ namespace Tanenbaum_CPU_Emulator
 			int line = box.GetLineFromCharIndex(box.SelectionStart);
 			int lineStart = box.GetFirstCharIndexOfCurrentLine();
 			bool suppress = false;
-			switch (e.KeyData)
+			switch (e.KeyCode)
 			{
 				case Keys.PageUp:
 					suppress = line == 0;
@@ -419,17 +419,54 @@ namespace Tanenbaum_CPU_Emulator
 					break;
 
 
-				case Keys.Enter:
-					if (line >= box.Lines.Length)
-						break;
-					var sline = box.Lines[line];
-					int copy = 0;
-					while (copy + 1 < sline.Length && Char.IsWhiteSpace(sline[copy]))
-						copy++;
-					if (copy == 0)
-						break;
+				case Keys.Tab:
+					Begin(true);
+					int lineEnd = box.GetLineFromCharIndex(box.SelectionStart + box.SelectionLength);
+					string[] lines = box.Lines;
+					Selection sel1;
+					if (e.Shift)
+					{
+						sel1 = new Selection(sel.Start, 0);
+						for (int i = line; i <= lineEnd; i++)
+						{
+							string sline = box.Lines[i];
+							if (sline.StartsWith("    "))
+								sline = sline.Substring(4);
+							else if (sline.StartsWith("\t"))
+								sline = sline.Substring(1);
 
-					Begin(false);
+							lines[i] = sline;
+						}
+					}
+					else
+					{
+						sel1 = sel;
+						for (int i = line; i <= lineEnd; i++)
+						{
+							string sline = box.Lines[i];
+							sline = '\t' + sline;
+							lines[i] = sline;
+							sel1 = new Selection(sel1.Start,sel1.Length+1);
+						}
+					}
+					box.Lines = lines;
+					End();
+					Select(sel1);
+					RegisterChange();
+					suppress = true;
+					break;
+				case Keys.Enter:
+					{
+						if (line >= box.Lines.Length)
+							break;
+						var sline = box.Lines[line];
+						int copy = 0;
+						while (copy + 1 < sline.Length && Char.IsWhiteSpace(sline[copy]))
+							copy++;
+						if (copy == 0)
+							break;
+
+						Begin(false);
 						if (box.SelectionLength > 0)
 						{
 							box.Text = box.Text.Remove(box.SelectionStart, box.SelectionLength);
@@ -437,9 +474,10 @@ namespace Tanenbaum_CPU_Emulator
 						}
 						box.Text = box.Text.Insert(sel.Start, "\n" + sline.Substring(0, copy));
 						box.SelectionStart = sel.Start + 1 + copy;
-					End();
+						End();
 
-					suppress = true;
+						suppress = true;
+					}
 					break;
 			}
 			if (suppress)
@@ -494,6 +532,7 @@ namespace Tanenbaum_CPU_Emulator
 									past.RemoveAt(past.Count - 1);
 									future.Add(box.Text);
 									box.SelectionStart = SetCode(rec).End;
+									lastText = box.Text;
 									box.SelectionLength = 0;
 								End();
 								codeInputBox.ScrollToCaret();
@@ -513,6 +552,7 @@ namespace Tanenbaum_CPU_Emulator
 									future.RemoveAt(future.Count - 1);
 									past.Add(box.Text);
 									box.SelectionStart = SetCode(rec).End;
+									lastText = box.Text;
 									box.SelectionLength = 0;
 								End();
 								codeInputBox.ScrollToCaret();
@@ -551,23 +591,29 @@ namespace Tanenbaum_CPU_Emulator
 
 		string lastText = null;
 
+		void RegisterChange()
+		{
+			future.Clear();
+			if (lastText != null)
+				past.Add(lastText);
+			if (past.Count > 1024)
+				past.RemoveRange(0, 64);//bulk
+			lastText = codeInputBox.Text;
+		}
+
 		private void codeInputBox_TextChanged(object sender, EventArgs e)
 		{
 			bool actualChange = codeInputBox.Text != lastText;
 			if (!ignoreChange)
 			{
-				future.Clear();
-				if (lastText != null)
-					past.Add(lastText);
-				if (past.Count > 1024)
-					past.RemoveRange(0, 64);//bulk
+				RegisterChange();
 			}
-			lastText = codeInputBox.Text;
 			ReColor();
 		}
 
 		private void EditorForm_Shown(object sender, EventArgs e)
 		{
+			lastText = codeInputBox.Text;
 			ReColor();
 		}
 
