@@ -80,7 +80,6 @@ The **HALT** instruction temporarily interrupts execution and requires user inpu
 
 During execution, each command logs the current program counter, executed instruction text, and any detected changes.
 The stack pointer, if changed, is logged with both its negative relative and absolute address (`sp := [relative]/[absolute]`, e.g. *sp := -5/9995*).
-
+The relative address is determined from the difference between the current and initial stack pointer value, or the one last set using the **SWAP** instruction.
 If the stack pointer reaches either extreme of the available address space during execution, it will wrap around to the opposite extreme.
-The simulation keeps track of the initial stack value (0 until **SWAP** is executed), and allows to display the stack pointer relative to this initial value.
 Under regular circumstances the relative stack pointer position represents the negative stack fill level.
