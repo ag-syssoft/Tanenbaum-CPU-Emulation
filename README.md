@@ -71,15 +71,16 @@ The same address may be referenced by multiple aliases, but their order of value
 
 
 ## Execution
-All memory is initialized to 0, including the stack pointer, program counter, and accumulator.
+Before execution starts, all memory is initialized to 0, including the stack pointer, program counter, and accumulator.
+If any aliases are declared with initial values, then these initializations also take place at this point.
 
-If the stack pointer reaches either extreme of the available address space during execution, it will wrap around to the opposite extreme.
-The simulation keeps track of the initial stack value (0 unless SWAP is executed), and allows to display the stack pointer relative to this initial value.
-Under regular circumstances the relative stack pointer position represents the negative stack fill level.
-
-Execution starts with the top-most instruction specified in the program, and continues until the program either exits beyond the bottom most instruction, or executes the HALT command.
+Execution starts with the top-most instruction specified in the program, and continues until the program either exits beyond the bottom most instruction, or executes the **EXIT** command.
 It may also terminate unintentionally if access violations occur (e.g. by trying to read/write addresses beyond 9999).
-If any aliases are declared with initial values, then these initializations are executed before the first regular program instruction, regardless of where they were defined in the code.
+The **HALT** instruction temporarily interrupts execution and requires user input before resuming.
 
 During execution, each command logs the current program counter, executed instruction text, and any detected changes.
 The stack pointer, if changed, is logged with both its negative relative and absolute address (`sp := [relative]/[absolute]`, e.g. *sp := -5/9995*).
+
+If the stack pointer reaches either extreme of the available address space during execution, it will wrap around to the opposite extreme.
+The simulation keeps track of the initial stack value (0 until **SWAP** is executed), and allows to display the stack pointer relative to this initial value.
+Under regular circumstances the relative stack pointer position represents the negative stack fill level.
