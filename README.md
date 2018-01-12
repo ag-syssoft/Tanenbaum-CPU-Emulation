@@ -7,7 +7,7 @@ While some parts are not as portable as they should be, the project generally ru
 
 ## Differences to the original
 
-1. Some instructions where added to control the simulation
+1. Some instructions were added to control the simulation
    1. **EXIT** terminates the simulation
    1. **HALT** pauses execution. Both console and visual editor halt execution, and await user input before resuming
 1. All values and parameters are handled as 32bit signed integers
@@ -63,9 +63,8 @@ Aliases represent named addresses, that reside at a fixed location, and may be i
 Aliases are declared, one per line, in the form:\
 `#alias name @address [=value]`\
 Aliases may be declared anywhere in the code, and optionally referenced by name by any direct address instruction (`ADDD, SUBD, LODD, STOD`).
-
-Alias names are unique and case-sensitive, and may contain any non-whitespace characters. Purely numeric names (e.g. 1234) are not valid.
-If an optional initial *value* is specified, then the value at the specified address is initialized to that value prior to executing the first regular instruction, regardless of where the alias is declared in the code.
+The given names are unique and case-sensitive, and may contain any non-whitespace characters. Purely numeric names (e.g. 1234), however, are not valid.
+If an optional initial *value* is specified, then the specified memory address is initialized to that value prior to executing the first regular instruction, regardless of where the alias is declared in the code.
 The same address may be referenced by multiple aliases, but their order of value initialization is undefined, if specified differently.
 
 
