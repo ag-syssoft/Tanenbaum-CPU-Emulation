@@ -54,7 +54,7 @@ Jumping to a label will update the program counter to next execute the immediate
 If no instructions follow, jumping to the respective label will end the program the same way **EXIT** does.
 
 Labels are unique, case-sensitive names that may contain any non-whitespace characters.
-They may be put before other declarations (e.g. `endless-loop: JUMP endless-loop`), or appear on their own, in which case they point to the first following command (if any).
+They may be put before other declarations (e.g. `endless-loop: JUMP endless-loop`), or appear on their own, in which case they point to the first following instruction (if any).
 Purely numeric labels are always interpreted as names, not as explicit program addresses.
 
 
@@ -74,12 +74,15 @@ The same address may be referenced by multiple aliases, but their order of value
 Before execution starts, all memory is initialized to 0, including the stack pointer, program counter, and accumulator.
 If any aliases are declared with initial values, then these initializations also take place at this point.
 
-Execution starts with the top-most instruction specified in the program, and continues until the program either exits beyond the bottom most instruction, or executes the **EXIT** command.
+Execution starts with the top-most instruction specified in the program, and continues until the program either exits beyond the bottom most instruction, or executes the **EXIT** instruction.
 It may also terminate unintentionally if access violations occur (e.g. by trying to read/write addresses beyond 9999).
 The **HALT** instruction temporarily interrupts execution and requires user input before resuming.
 
-During execution, each command logs the current program counter, executed instruction text, and any detected changes.
+If the stack pointer reaches either extreme of the available address space during execution, it will wrap around to the opposite extreme.
+
+Each instruction logs the current program counter, executed instruction text, and any detected changes.
+
 The stack pointer, if changed, is logged with both its negative relative and absolute address (`sp := [relative]/[absolute]`, e.g. *sp := -5/9995*).
 The relative address is determined from the difference between the current and initial stack pointer value, or the one last set using the **SWAP** instruction.
-If the stack pointer reaches either extreme of the available address space during execution, it will wrap around to the opposite extreme.
 Under regular circumstances the relative stack pointer position represents the negative stack fill level.
+
