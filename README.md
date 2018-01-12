@@ -39,7 +39,7 @@ Lines may be indented using any number of whitespace characters. Likewise, any s
 Instructions are specified in the form:\
 `instruction [parameter]`\
 The character case of instructions is ignored (`SUBL` is the same as `subl`, `Subl`, or `sUbL`).
-Onlye some instructions require parameters.
+Only some instructions require parameters.
 
 All regular instructions behave as defined in *Tanenbaum, A. (1990) "Structured Computer Organisation.", Prentice Hall, 3rd edition*.
 Documentations may be found at [stvincent.edu](http://cis.stvincent.edu/carlsond/cs330/mic1/mic1doc.txt) (English), or [syssoft.blog](https://ca.syssoft.blog/wp-content/uploads/2018/01/2017W-CA06-Tanenbaum-CPU.pdf) (German).
