@@ -137,13 +137,20 @@ namespace Tanenbaum_CPU_Emulator
 
 		struct Selection
 		{
-			public int start, length;
+			public readonly int Start, Length;
 
+			public int End { get { return Start + Length; } }
+
+			public Selection(int start, int length)
+			{
+				Start = start;
+				Length = length;
+			}
 
 			public Selection(int offset, Language.ParsedSegment seg)
 			{
-				start = offset + seg.Start;
-				length = seg.Length;
+				Start = offset + seg.Start;
+				Length = seg.Length;
 			}
 
 		}
@@ -179,11 +186,11 @@ namespace Tanenbaum_CPU_Emulator
 		int changeDepth = 0;
 		int scrollPosition = 0;
 
-		void Begin()
+		void Begin(bool ignoreChanges)
 		{
 			if (changeDepth == 0)
 			{
-				ignoreChange = true;
+				ignoreChange = ignoreChanges;
 				SuspendDrawing(codeInputBox);
 				scrollPosition = GetScrollPosition();
 			}
@@ -206,7 +213,7 @@ namespace Tanenbaum_CPU_Emulator
 		{
 
 			statusLabel.Text = "";
-			Begin();
+			Begin(true);
 
 			var start = codeInputBox.SelectionStart;
 			var len = codeInputBox.SelectionLength;
@@ -243,8 +250,13 @@ namespace Tanenbaum_CPU_Emulator
 						}
 					}
 				}
-				catch
-				{ }
+				catch (Exception ex)
+				{
+					codeInputBox.Select(at, line.Length);
+					Apply(errorStyle);
+					if (statusLabel.Text.Length == 0)
+						statusLabel.Text = ex.Message;
+				}
 				at += line.Length + 1;
 			}
 
@@ -267,19 +279,22 @@ namespace Tanenbaum_CPU_Emulator
 						catch (Machine.CommandRequiresParameterException ex)
 						{
 							Apply(commandLacksParameterStyle);
-							statusLabel.Text = ex.Message;
+							if (statusLabel.Text.Length == 0)
+								statusLabel.Text = ex.Message;
 						}
 						catch (Machine.CommandDoesNotSupportParameterException ex)
 						{
 							Apply(commandStyle);
 
 							Select(at,l.Parameter); Apply(errorStyle);
-							statusLabel.Text = ex.Message;
+							if (statusLabel.Text.Length == 0)
+								statusLabel.Text = ex.Message;
 						}
 						catch (Exception ex)
 						{
 							Apply(errorStyle);
-							statusLabel.Text = ex.Message;
+							if (statusLabel.Text.Length == 0)
+								statusLabel.Text = ex.Message;
 						}
 					}
 
@@ -317,7 +332,8 @@ namespace Tanenbaum_CPU_Emulator
 						catch (Exception ex)
 						{
 							Apply(errorStyle);
-							statusLabel.Text = ex.Message;
+							if (statusLabel.Text.Length == 0)
+								statusLabel.Text = ex.Message;
 						}
 					}
 
@@ -354,24 +370,23 @@ namespace Tanenbaum_CPU_Emulator
 
 		private void Select(Selection sel)
 		{
-			codeInputBox.Select(sel.start,sel.length);
+			codeInputBox.Select(sel.Start,sel.Length);
 		}
 
 		private Selection GetSelected()
 		{
-			return new Selection() { start = codeInputBox.SelectionStart, length = codeInputBox.SelectionLength };
+			return new Selection(codeInputBox.SelectionStart, codeInputBox.SelectionLength);
 		}
 
 
-
-		List<Tuple<string,int>> back = new List<Tuple<string, int>>();
-		List<Tuple<string, int>> fore = new List<Tuple<string, int>>();
+		List<string> past = new List<string>();
+		List<string> future = new List<string>();
 		bool ignoreChange = false;
 
 
 		private void codeInputBox_KeyDown(object sender, KeyEventArgs e)
 		{
-
+			var sel = GetSelected();
 			var box = codeInputBox;
 			int line = box.GetLineFromCharIndex(box.SelectionStart);
 			int lineStart = box.GetFirstCharIndexOfCurrentLine();
@@ -402,6 +417,30 @@ namespace Tanenbaum_CPU_Emulator
 				case Keys.Right:
 					suppress = box.SelectionStart == box.TextLength;
 					break;
+
+
+				case Keys.Enter:
+					if (line >= box.Lines.Length)
+						break;
+					var sline = box.Lines[line];
+					int copy = 0;
+					while (copy + 1 < sline.Length && Char.IsWhiteSpace(sline[copy]))
+						copy++;
+					if (copy == 0)
+						break;
+
+					Begin(false);
+						if (box.SelectionLength > 0)
+						{
+							box.Text = box.Text.Remove(box.SelectionStart, box.SelectionLength);
+							box.SelectionLength = 0;
+						}
+						box.Text = box.Text.Insert(sel.Start, "\n" + sline.Substring(0, copy));
+						box.SelectionStart = sel.Start + 1 + copy;
+					End();
+
+					suppress = true;
+					break;
 			}
 			if (suppress)
 			{
@@ -417,7 +456,7 @@ namespace Tanenbaum_CPU_Emulator
 			
 			if (e.Control)
 			{
-				var sel = GetSelected();
+				//var sel = GetSelected();
 				switch (e.KeyCode)
 				{
 					//case Keys.C:
@@ -448,18 +487,17 @@ namespace Tanenbaum_CPU_Emulator
 					//	break;
 					case Keys.Z:
 						{
-							if (back.Count > 0)
+							if (past.Count > 0)
 							{
-								Begin();
-									var rec = back[back.Count - 1];
-									back.RemoveAt(back.Count - 1);
-									fore.Add(new Tuple<string, int>(box.Text, box.SelectionStart));
-									box.Text = rec.Item1;
-									box.SelectionStart = rec.Item2;
+								Begin(true);
+									var rec = past[past.Count - 1];
+									past.RemoveAt(past.Count - 1);
+									future.Add(box.Text);
+									box.SelectionStart = SetCode(rec).End;
 									box.SelectionLength = 0;
 								End();
 								codeInputBox.ScrollToCaret();
-								statusLabel.Text = "Undone. "+back.Count+" action(s) left to undo, "+fore.Count+" action(s) left to redo";
+								statusLabel.Text = "Undone. "+past.Count+" action(s) left to undo, "+future.Count+" action(s) left to redo";
 							}
 							else
 								statusLabel.Text = "Nothing recorded to undo";
@@ -468,18 +506,17 @@ namespace Tanenbaum_CPU_Emulator
 						break;
 					case Keys.Y:
 						{
-							if (fore.Count > 0)
+							if (future.Count > 0)
 							{
-								Begin();
-									var rec = fore[fore.Count - 1];
-									fore.RemoveAt(fore.Count - 1);
-									back.Add(new Tuple<string, int>(box.Text, box.SelectionStart));
-									codeInputBox.Text = rec.Item1;
-									box.SelectionStart = rec.Item2;
+								Begin(true);
+									var rec = future[future.Count - 1];
+									future.RemoveAt(future.Count - 1);
+									past.Add(box.Text);
+									box.SelectionStart = SetCode(rec).End;
 									box.SelectionLength = 0;
 								End();
 								codeInputBox.ScrollToCaret();
-								statusLabel.Text = "Redone. " + back.Count + " action(s) left to undo, " + fore.Count + " action(s) left to redo";
+								statusLabel.Text = "Redone. " + past.Count + " action(s) left to undo, " + future.Count + " action(s) left to redo";
 							}
 							else
 								statusLabel.Text = "Nothing recorded to redo";
@@ -490,19 +527,40 @@ namespace Tanenbaum_CPU_Emulator
 			}
 		}
 
+		private Selection SetCode(string text)
+		{
+			string current = codeInputBox.Text;
+			int firstMismatch = 0;
+			while (firstMismatch + 1 < text.Length && firstMismatch + 1 < current.Length)
+			{
+				if (text[firstMismatch] != current[firstMismatch])
+					break;
+				firstMismatch++;
+			}
+
+			int lastMismatch = 0;
+			while (lastMismatch + 1 < text.Length && lastMismatch + 1 < current.Length)
+			{
+				if (text[text.Length -1 - lastMismatch] != current[current.Length -1 - lastMismatch])
+					break;
+				lastMismatch++;
+			}
+			codeInputBox.Text = text;
+			return new Selection(firstMismatch, text.Length - lastMismatch - firstMismatch);
+		}
+
 		string lastText = null;
-		int lastCuror = 0;
 
 		private void codeInputBox_TextChanged(object sender, EventArgs e)
 		{
 			bool actualChange = codeInputBox.Text != lastText;
 			if (!ignoreChange)
 			{
-				fore.Clear();
+				future.Clear();
 				if (lastText != null)
-					back.Add(new Tuple<string, int>( lastText, codeInputBox.SelectionStart));
-				if (back.Count > 1024)
-					back.RemoveRange(0, 64);//bulk
+					past.Add(lastText);
+				if (past.Count > 1024)
+					past.RemoveRange(0, 64);//bulk
 			}
 			lastText = codeInputBox.Text;
 			ReColor();

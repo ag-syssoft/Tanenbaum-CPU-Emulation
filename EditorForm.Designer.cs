@@ -73,7 +73,8 @@
 			this.codeInputBox.Name = "codeInputBox";
 			this.codeInputBox.Size = new System.Drawing.Size(801, 567);
 			this.codeInputBox.TabIndex = 6;
-			this.codeInputBox.Text = "#alias one @1024 =1\n\n//loop 10 times:\nloco 10\n\nloop:\nsubd one\njnze loop\n\nhalt\n";
+			this.codeInputBox.Text = "#alias one @1000 =1 ;declare \'one\' as new address alias, using address 1000 and i" +
+    "nitial value 1\n\n//loop 10 times:\nloco 10\n\nloop:\n\tsubd one\n\tjnze loop\n\t\nexit";
 			this.codeInputBox.TextChanged += new System.EventHandler(this.codeInputBox_TextChanged);
 			this.codeInputBox.KeyDown += new System.Windows.Forms.KeyEventHandler(this.codeInputBox_KeyDown);
 			this.codeInputBox.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.codeInputBox_KeyPress);

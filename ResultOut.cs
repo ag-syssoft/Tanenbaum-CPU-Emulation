@@ -69,8 +69,16 @@ namespace Tanenbaum_CPU_Emulator
 			bool doEnd = false;
 			try
 			{
-				if (exec.Execute(10))
-					doEnd = true;
+				switch (exec.Execute(10))
+				{
+					case Machine.Emulator.ExecutionState.Ended:
+						doEnd = true;
+						break;
+					case Machine.Emulator.ExecutionState.Paused:
+						programCounter.Enabled = false;
+						pauseButton.Text = "Resume";
+						break;
+				}
 			}
 			catch (Exception ex)
 			{
@@ -82,6 +90,7 @@ namespace Tanenbaum_CPU_Emulator
 			pcLabel.Text = state.pc.ToString();
 			acLabel.Text = state.ac.ToString();
 			spLabel.Text = state.sp.ToString();
+			stackLabel.Text = "Stack: " + state.StackToString(16);
 			if (doEnd)
 				End();
 			ScrollDown();
@@ -93,7 +102,9 @@ namespace Tanenbaum_CPU_Emulator
 			{
 				programCounter.Enabled = !programCounter.Enabled;
 				if (programCounter.Enabled)
+				{
 					pauseButton.Text = "Pause";
+				}
 				else
 					pauseButton.Text = "Resume";
 			}

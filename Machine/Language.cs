@@ -163,7 +163,8 @@ namespace Machine
 			Register("INSP", (s, p) => s.IncreaseStackPointer(p), Command.ParameterType.StackDelta);
 			Register("DESP", (s, p) => s.DecreaseStackPointer(p), Command.ParameterType.StackDelta);
 
-			Register("HALT", s => s.pc = -1);
+			Register("EXIT", s => s.Exit());
+			Register("HALT", s => s.Halt());
 
 		}
 
@@ -433,6 +434,9 @@ namespace Machine
 						if (elements.Length < 2)
 							throw new ArgumentException("#alias <name> @<address> [=<value>]: Name expected");
 						AliasName = elements[1];
+						int x;
+						if (int.TryParse(AliasName.Value,out x))
+							throw new ArgumentException("#alias <name> @<address> [=<value>]: Name '"+AliasName.Value+"' is purely numeric, would be ignored by instructions");
 						if (elements.Length < 3 || elements[2] != "@")
 							throw new ArgumentException("#alias <name> @<address> [=<value>]: @ expected");
 						if (elements.Length < 4)
@@ -450,7 +454,6 @@ namespace Machine
 								throw new ArgumentException("#alias <name> @<address> [=<value>]: Value expected");
 							AliasValue = elements[5];
 
-							int x;
 							if (!int.TryParse(AliasValue.Value, out x))
 								throw new ArgumentException("#alias <name> @<address> [=<value>]: Unable to parse value '" + AliasValue.Value + "'");
 							IntAliasValue = x;

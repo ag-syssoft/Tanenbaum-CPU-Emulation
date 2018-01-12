@@ -41,17 +41,29 @@ namespace Machine
 		/// </summary>
 		public State State { get { return state; } }
 
+
+		public enum ExecutionState
+		{
+			Paused,
+			Ended,
+			Unfinished
+		}
+
+
 		/// <summary>
 		/// Executes a number of instructions on the local state
 		/// </summary>
 		/// <param name="maxInstructions">Maximum number of instructions to execute</param>
 		/// <returns>False if the program has not terminated, true if it has reached some program end state in the alotted number of instructions</returns>
-		public bool Execute(int maxInstructions)
+		public ExecutionState Execute(int maxInstructions, bool ignorePause = false)
 		{
+			state.halted = false;
 			for (int i = 0; i < maxInstructions; i++)
 			{
+				if (state.halted && !ignorePause)
+					return ExecutionState.Paused;
 				if (state.pc < 0 || state.pc >= program.Length)
-					return true;
+					return ExecutionState.Ended;
 				instructionCounter++;
 				var inst = program[state.pc];
 				state.pc++;
@@ -62,7 +74,7 @@ namespace Machine
 					logOut("    " + l);
 				state.log.Clear();
 			}
-			return false;
+			return ExecutionState.Unfinished;
 		}
 
 

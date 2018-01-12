@@ -31,16 +31,17 @@
 			this.components = new System.ComponentModel.Container();
 			this.resultBox = new System.Windows.Forms.ListBox();
 			this.panel1 = new System.Windows.Forms.Panel();
+			this.spLabel = new System.Windows.Forms.Label();
+			this.label5 = new System.Windows.Forms.Label();
+			this.acLabel = new System.Windows.Forms.Label();
+			this.label3 = new System.Windows.Forms.Label();
 			this.pauseButton = new System.Windows.Forms.Button();
 			this.pcLabel = new System.Windows.Forms.Label();
 			this.instructionCountLabel = new System.Windows.Forms.Label();
 			this.label2 = new System.Windows.Forms.Label();
 			this.label1 = new System.Windows.Forms.Label();
 			this.programCounter = new System.Windows.Forms.Timer(this.components);
-			this.label3 = new System.Windows.Forms.Label();
-			this.acLabel = new System.Windows.Forms.Label();
-			this.spLabel = new System.Windows.Forms.Label();
-			this.label5 = new System.Windows.Forms.Label();
+			this.stackLabel = new System.Windows.Forms.Label();
 			this.panel1.SuspendLayout();
 			this.SuspendLayout();
 			// 
@@ -55,6 +56,7 @@
 			// 
 			// panel1
 			// 
+			this.panel1.Controls.Add(this.stackLabel);
 			this.panel1.Controls.Add(this.spLabel);
 			this.panel1.Controls.Add(this.label5);
 			this.panel1.Controls.Add(this.acLabel);
@@ -69,6 +71,42 @@
 			this.panel1.Name = "panel1";
 			this.panel1.Size = new System.Drawing.Size(547, 43);
 			this.panel1.TabIndex = 5;
+			// 
+			// spLabel
+			// 
+			this.spLabel.AutoSize = true;
+			this.spLabel.Location = new System.Drawing.Point(152, 21);
+			this.spLabel.Name = "spLabel";
+			this.spLabel.Size = new System.Drawing.Size(13, 13);
+			this.spLabel.TabIndex = 8;
+			this.spLabel.Text = "0";
+			// 
+			// label5
+			// 
+			this.label5.AutoSize = true;
+			this.label5.Location = new System.Drawing.Point(122, 21);
+			this.label5.Name = "label5";
+			this.label5.Size = new System.Drawing.Size(24, 13);
+			this.label5.TabIndex = 7;
+			this.label5.Text = "SP:";
+			// 
+			// acLabel
+			// 
+			this.acLabel.AutoSize = true;
+			this.acLabel.Location = new System.Drawing.Point(152, 8);
+			this.acLabel.Name = "acLabel";
+			this.acLabel.Size = new System.Drawing.Size(13, 13);
+			this.acLabel.TabIndex = 6;
+			this.acLabel.Text = "0";
+			// 
+			// label3
+			// 
+			this.label3.AutoSize = true;
+			this.label3.Location = new System.Drawing.Point(122, 8);
+			this.label3.Name = "label3";
+			this.label3.Size = new System.Drawing.Size(24, 13);
+			this.label3.TabIndex = 5;
+			this.label3.Text = "AC:";
 			// 
 			// pauseButton
 			// 
@@ -122,41 +160,14 @@
 			this.programCounter.Interval = 1;
 			this.programCounter.Tick += new System.EventHandler(this.programCounter_Tick);
 			// 
-			// label3
+			// stackLabel
 			// 
-			this.label3.AutoSize = true;
-			this.label3.Location = new System.Drawing.Point(122, 8);
-			this.label3.Name = "label3";
-			this.label3.Size = new System.Drawing.Size(24, 13);
-			this.label3.TabIndex = 5;
-			this.label3.Text = "AC:";
-			// 
-			// acLabel
-			// 
-			this.acLabel.AutoSize = true;
-			this.acLabel.Location = new System.Drawing.Point(152, 8);
-			this.acLabel.Name = "acLabel";
-			this.acLabel.Size = new System.Drawing.Size(13, 13);
-			this.acLabel.TabIndex = 6;
-			this.acLabel.Text = "0";
-			// 
-			// spLabel
-			// 
-			this.spLabel.AutoSize = true;
-			this.spLabel.Location = new System.Drawing.Point(152, 21);
-			this.spLabel.Name = "spLabel";
-			this.spLabel.Size = new System.Drawing.Size(13, 13);
-			this.spLabel.TabIndex = 8;
-			this.spLabel.Text = "0";
-			// 
-			// label5
-			// 
-			this.label5.AutoSize = true;
-			this.label5.Location = new System.Drawing.Point(122, 21);
-			this.label5.Name = "label5";
-			this.label5.Size = new System.Drawing.Size(24, 13);
-			this.label5.TabIndex = 7;
-			this.label5.Text = "SP:";
+			this.stackLabel.AutoSize = true;
+			this.stackLabel.Location = new System.Drawing.Point(217, 8);
+			this.stackLabel.Name = "stackLabel";
+			this.stackLabel.Size = new System.Drawing.Size(47, 13);
+			this.stackLabel.TabIndex = 9;
+			this.stackLabel.Text = "Stack: []";
 			// 
 			// ResultOut
 			// 
@@ -188,5 +199,6 @@
 		private System.Windows.Forms.Label label3;
 		private System.Windows.Forms.Label spLabel;
 		private System.Windows.Forms.Label label5;
+		private System.Windows.Forms.Label stackLabel;
 	}
 }

@@ -16,6 +16,7 @@ namespace Machine
 		public int sp = 0;  //stack-pointer
 		public int spCeiling = 0;	//to calculate stack progression
 		public int[] m = new int[MemorySize];
+		public bool halted = false;
 
 		public const int MemorySize = 10000;
 
@@ -133,6 +134,27 @@ namespace Machine
 			LogPC();
 		}
 
+		public string StackToString(int maxElements)
+		{
+			List<string> stackElements = new List<string>();
+			int at = sp;
+			while (at != spCeiling)
+			{
+				if (stackElements.Count + 1 < maxElements)
+					stackElements.Add(m[at].ToString());
+				else
+				{
+					stackElements.Add("...");
+					break;
+				}
+
+				at++;
+				if (at >= m.Length)
+					at = 0;
+			}
+
+			return "["+string.Join(",", stackElements) + "]";
+		}
 
 		public void Call(int x)
 		{
@@ -146,6 +168,17 @@ namespace Machine
 		{
 			Pop(ref pc);
 			LogPC();
+		}
+		public void Exit()
+		{
+			pc = -1;
+			Log("Program exited");
+		}
+
+		public void Halt()
+		{
+			halted = true;
+			Log("Halted");
 		}
 
 		public void Swap()
