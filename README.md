@@ -8,8 +8,8 @@ While some parts are not as portable as they should be, the project generally ru
 ## Differences to the original
 
 1. Some instructions where added to control the simulation
-1.1. **EXIT** terminates the simulation
-1.1. **HALT** pauses execution. Both console and visual editor halt execution, and await user input before resuming
+   1. **EXIT** terminates the simulation
+   1. **HALT** pauses execution. Both console and visual editor halt execution, and await user input before resuming
 1. All values and parameters are handled as 32bit signed integers
 1. The full address space consists of **10000x 32bit** signed integers, instead of the original **4096x 16bit** words
 1. The program is converted into and executed as a sequence of referenced method invocations, not actual byte code.
