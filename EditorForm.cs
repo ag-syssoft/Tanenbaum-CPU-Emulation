@@ -420,40 +420,43 @@ namespace Tanenbaum_CPU_Emulator
 
 
 				case Keys.Tab:
-					Begin(true);
 					int lineEnd = box.GetLineFromCharIndex(box.SelectionStart + box.SelectionLength);
-					string[] lines = box.Lines;
-					Selection sel1;
-					if (e.Shift)
+					if (lineEnd != line || e.Shift)
 					{
-						sel1 = new Selection(sel.Start, 0);
-						for (int i = line; i <= lineEnd; i++)
+						Begin(true);
+						string[] lines = box.Lines;
+						Selection sel1;
+						if (e.Shift)
 						{
-							string sline = box.Lines[i];
-							if (sline.StartsWith("    "))
-								sline = sline.Substring(4);
-							else if (sline.StartsWith("\t"))
-								sline = sline.Substring(1);
+							sel1 = new Selection(sel.Start, 0);
+							for (int i = line; i <= lineEnd; i++)
+							{
+								string sline = box.Lines[i];
+								if (sline.StartsWith("    "))
+									sline = sline.Substring(4);
+								else if (sline.StartsWith("\t"))
+									sline = sline.Substring(1);
 
-							lines[i] = sline;
+								lines[i] = sline;
+							}
 						}
-					}
-					else
-					{
-						sel1 = sel;
-						for (int i = line; i <= lineEnd; i++)
+						else
 						{
-							string sline = box.Lines[i];
-							sline = '\t' + sline;
-							lines[i] = sline;
-							sel1 = new Selection(sel1.Start,sel1.Length+1);
+							sel1 = sel;
+							for (int i = line; i <= lineEnd; i++)
+							{
+								string sline = box.Lines[i];
+								sline = '\t' + sline;
+								lines[i] = sline;
+								sel1 = new Selection(sel1.Start, sel1.Length + 1);
+							}
 						}
+						box.Lines = lines;
+						End();
+						Select(sel1);
+						RegisterChange();
+						suppress = true;
 					}
-					box.Lines = lines;
-					End();
-					Select(sel1);
-					RegisterChange();
-					suppress = true;
 					break;
 				case Keys.Enter:
 					{
