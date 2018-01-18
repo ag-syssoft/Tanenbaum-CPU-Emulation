@@ -32,7 +32,7 @@ The language recognizes one alias declaration or program instruction per line.
 The general declaration syntax is\
 `[label:] [declaration] [;comment or //comment]`\
 where `declaration` is an alias declaration or program instruction.
-Lines may be indented using any number of non-newline whitespace characters. Likewise, any spacing between line components may be any number of non-newline whitespace characters.
+Lines may be indented using any number of non-newline whitespace characters (tabs or spaces, typically). Likewise, any spacing between line components may consist of any number of non-newline whitespace characters.
 
 ### Instructions
 
