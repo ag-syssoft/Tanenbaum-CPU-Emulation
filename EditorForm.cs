@@ -400,7 +400,13 @@ namespace Tanenbaum_CPU_Emulator
 					suppress = line+1 == box.Lines.Length;
 					break;
 				case Keys.End:
-					suppress = box.SelectionStart - lineStart == box.Lines[line].Length;
+					if (!e.Shift)
+						suppress = box.SelectionStart - lineStart == box.Lines[line].Length;
+					else
+					{
+						box.SelectionLength = lineStart + box.Lines[line].Length - box.SelectionStart;
+						suppress = true;
+					}
 					break;
 				case Keys.Home:
 					suppress = box.SelectionStart == lineStart;
@@ -418,7 +424,15 @@ namespace Tanenbaum_CPU_Emulator
 					suppress = box.SelectionStart == box.TextLength;
 					break;
 
-
+				
+				//case Keys.Back:
+				//case Keys.Delete:
+				//	int endLine = box.GetLineFromCharIndex(box.SelectionStart + box.SelectionLength);
+				//	if (line+1 >= endLine && box.SelectedText.EndsWith("\n"))
+				//	{
+				//		box.SelectionLength--;
+				//	}
+				//	break;
 				case Keys.Tab:
 					int lineEnd = box.GetLineFromCharIndex(box.SelectionStart + box.SelectionLength);
 					if (lineEnd != line || e.Shift)
@@ -464,9 +478,10 @@ namespace Tanenbaum_CPU_Emulator
 							break;
 						var sline = box.Lines[line];
 						int copy = 0;
-						while (copy + 1 < sline.Length && Char.IsWhiteSpace(sline[copy]))
+						int limit = box.SelectionStart - lineStart;
+						while (copy + 1 <= sline.Length  && copy < limit && Char.IsWhiteSpace(sline[copy]))
 							copy++;
-						if (copy == 0)
+						if (copy == 0 /*|| copy == sline.Length*/)
 							break;
 
 						Begin(false);
