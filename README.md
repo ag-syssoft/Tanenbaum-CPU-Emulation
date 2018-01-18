@@ -32,7 +32,7 @@ The language recognizes one alias declaration or program instruction per line.
 The general declaration syntax is\
 `[label:] [declaration] [;comment or //comment]`\
 where `declaration` is an alias declaration or program instruction.
-Lines may be indented using any number of whitespace characters. Likewise, any spacing between line components may be any number of whitespace characters.
+Lines may be indented using any number of non-newline whitespace characters. Likewise, any spacing between line components may be any number of non-newline whitespace characters.
 
 ### Instructions
 
@@ -65,7 +65,7 @@ Aliases represent named addresses, that reside at a fixed location, and may be i
 Aliases are declared, one per line, in the form:\
 `#alias name @address [=value]`\
 Aliases may be declared anywhere in the code, and optionally referenced by name by any direct address instruction (`ADDD, SUBD, LODD, STOD`).
-The given names are unique and case-sensitive, and may contain any non-whitespace characters. Purely numeric names (e.g. 1234), however, are not valid.
+The given names are unique and case-sensitive, and may contain any non-whitespace characters. However, purely numeric names (e.g. 1234) are not allowed, since they can not be distinguished from actual addresses.
 Both the address and optional initial value must be specified as decimal numbers.
 The same address may be referenced by multiple aliases, but their order of value initialization is undefined if divergent.
 
